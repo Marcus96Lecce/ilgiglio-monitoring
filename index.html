@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0e8a71">
+<meta name="theme-color" content="#7a9b6e">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,23 +12,23 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>ILGIGLIO – Monitoraggio LIFE Salento Dunes</title>
 <style>
-  /* ── Theme: reused verbatim from the sibling NRDS Tahiti app (same visual identity across both
-     conservation-monitoring apps) — dark opaque background, emerald-teal header, forest-metal buttons,
-     opaque near-white cards. Only branding text/icons differ between the two apps. ── */
+  /* ── Theme "Fiore di giglio": same effects/structure as the sibling NRDS Tahiti app (metallic
+     button gradients, card shadows, layout) but recolored around Pancratium maritimum itself —
+     sage-green dune foliage, pale-gold flower corona, white petals. ── */
   :root{
-    --green:#2e7d32; --green-dark:#1b5e20; --green-light:#43a047; --green-xlight:#e8f5e9;
-    --bg:#1d1712; --card:#e6e8e2;
-    --border:#d4e4d4; --text:#1a2418; --muted:#637061;
+    --green:#b8973f; --green-dark:#8f7429; --green-light:#d4b968; --green-xlight:#f5edd4;
+    --bg:#1a1f19; --card:#fbfaf5;
+    --border:#e2ddc8; --text:#232620; --muted:#6b7862;
     --shadow-sm:0 2px 8px rgba(0,0,0,.35); --shadow-md:0 8px 26px rgba(0,0,0,.5);
     --r:10px;
-    --metal-hi:#7c9a80; --metal-mid:#3c5c40; --metal-lo:#1b2e1d; --metal-edge:#0e1a0f;
+    --metal-hi:#a9b89a; --metal-mid:#5c7050; --metal-lo:#2a3624; --metal-edge:#15190f;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
   body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
 
   header{
-    background:linear-gradient(135deg,#063a33 0%,#0e8a71 50%,#042420 100%);
+    background:linear-gradient(135deg,#3a5a4a 0%,#7a9b6e 50%,#1f2f26 100%);
     color:#fff;padding:18px 24px;
     display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;
     box-shadow:0 3px 14px rgba(0,0,0,.22);
@@ -69,12 +69,12 @@
   }
   .card .hint{
     font-size:12.5px;color:var(--muted);margin-bottom:12px;
-    border-left:3px solid #b5d5b5;padding-left:10px;line-height:1.65;
+    border-left:3px solid #c3d0b8;padding-left:10px;line-height:1.65;
   }
   .card > details > summary{cursor:pointer;margin-bottom:8px;}
 
   details.collapsible{
-    border:1px solid var(--border);border-radius:var(--r);background:#fafcfa;
+    border:1px solid var(--border);border-radius:var(--r);background:#faf9f0;
     overflow:hidden;margin-bottom:10px;
   }
   details.collapsible > summary{
@@ -85,7 +85,7 @@
   }
   details.collapsible > summary::-webkit-details-marker,
   details.collapsible > summary::marker{display:none;}
-  details.collapsible > summary:hover{background:#edf5ed;}
+  details.collapsible > summary:hover{background:#eef1e2;}
   details.collapsible[open] > summary{background:var(--green-xlight);}
   details.collapsible > summary .caret{
     margin-left:auto;font-size:12px;color:var(--muted);
@@ -131,13 +131,13 @@
     font-size:13px;padding:6px 9px;border:1.5px solid var(--border);border-radius:var(--r);
     background:#fff;cursor:pointer;transition:border-color .15s;
   }
-  select:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(46,125,50,.15);}
+  select:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(184,151,63,.18);}
   input[type=date],input[type=text],input[type=number],textarea{
     font-size:13px;padding:5px 8px;border:1.5px solid var(--border);border-radius:var(--r);
     background:#fff;transition:border-color .15s;font-family:inherit;
   }
   input[type=date]:focus,input[type=text]:focus,input[type=number]:focus,textarea:focus{
-    border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(46,125,50,.15);
+    border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(184,151,63,.18);
   }
   label.muted{display:inline-flex;align-items:center;gap:6px;}
   input[type=file]{font-size:13px;}
@@ -148,13 +148,13 @@
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
   .badge{
     display:inline-block;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:500;
-    background:var(--green-xlight);color:var(--green-dark);border:1px solid #b5d5b5;
+    background:var(--green-xlight);color:var(--green-dark);border:1px solid #d9c98f;
   }
 
   .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px;}
   .stat{
-    background:linear-gradient(145deg,#f6fcf6 0%,#edf5ed 100%);
-    border:1px solid #c6dcc6;border-radius:var(--r);
+    background:linear-gradient(145deg,#fbfaf5 0%,#f2f0e0 100%);
+    border:1px solid #ddd8bf;border-radius:var(--r);
     padding:12px 14px;text-align:center;
     box-shadow:0 1px 4px rgba(0,40,0,.05);
     transition:box-shadow .2s,transform .2s;
@@ -165,8 +165,8 @@
 
   table.preview{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
   table.preview th,table.preview td{border:1px solid var(--border);padding:5px 8px;text-align:left;}
-  table.preview th{background:linear-gradient(135deg,#eef6ee,#e4f0e4);position:sticky;top:0;font-weight:600;color:var(--green-dark);}
-  table.preview tr:nth-child(even) td{background:#f8fbf8;}
+  table.preview th{background:linear-gradient(135deg,#f4f2e2,#eae6ce);position:sticky;top:0;font-weight:600;color:var(--green-dark);}
+  table.preview tr:nth-child(even) td{background:#fbfaf5;}
   .table-scroll{max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:var(--r);}
 
   .muted{color:var(--muted);font-size:12.5px;}
@@ -233,7 +233,7 @@
   <button class="secondary" onclick="showHomeView()" style="margin-bottom:16px;">← Torna alla dashboard</button>
 
   <div id="offlineBanner" class="hint" style="background:#fff7e0;border:1px solid #e0c060;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;"></div>
-  <div id="iosBanner" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:13px;">
+  <div id="iosBanner" style="display:none;background:#f5edd4;border:1px solid #d4b968;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:13px;">
     📲 <b>Installa su iPhone/iPad:</b> tocca <b>Condividi</b> (□↑) → <b>Aggiungi a Home</b> — funziona anche completamente offline sulle dune senza campo.
     <button type="button" onclick="document.getElementById('iosBanner').style.display='none'" style="float:right;background:none;border:none;font-size:16px;cursor:pointer;line-height:1;">✕</button>
   </div>
@@ -761,7 +761,7 @@
     <form id="atForm" style="display:none;margin-top:12px;" onsubmit="submitActivityTypeForm(event)">
       <label class="muted" style="display:block;margin-bottom:8px;">Nome: <input type="text" id="atName" required style="width:100%;"></label>
       <label class="muted" style="display:block;margin-bottom:8px;">Descrizione: <input type="text" id="atDescription" style="width:100%;"></label>
-      <label class="muted" style="display:block;margin-bottom:10px;">Colore: <input type="color" id="atColor" value="#2e7d32"></label>
+      <label class="muted" style="display:block;margin-bottom:10px;">Colore: <input type="color" id="atColor" value="#b8973f"></label>
       <div id="atFieldRows"></div>
       <button type="button" class="secondary" style="margin:6px 0;" onclick="addAtFieldRow()">+ Aggiungi campo</button>
       <div class="row">
@@ -946,7 +946,7 @@ function renderOfflineBanner(){
       + '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="syncOfflineQueue()" '+(online?'':'disabled')+'>⬆ Sincronizza ora</button>';
   }
   if (showInstall) {
-    html += '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;background:#0e8a71;color:#fff;border-color:#0e8a71;" onclick="installPwa()">📲 Installa app</button>';
+    html += '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;background:#7a9b6e;color:#fff;border-color:#7a9b6e;" onclick="installPwa()">📲 Installa app</button>';
   }
   html += '</div>';
   if (queue.length){
@@ -1030,7 +1030,7 @@ function setPickerPoint(key, lat, lon){
   const entry = pickerMaps[key];
   if (!entry) return;
   if (entry.marker) entry.map.removeLayer(entry.marker);
-  entry.marker = L.circleMarker([lat, lon], { radius: 8, color: '#fff', weight: 2, fillColor: '#0e8a71', fillOpacity: 0.95 }).addTo(entry.map);
+  entry.marker = L.circleMarker([lat, lon], { radius: 8, color: '#fff', weight: 2, fillColor: '#b8973f', fillOpacity: 0.95 }).addTo(entry.map);
   entry.lat = lat; entry.lon = lon;
   const readout = document.getElementById(key + 'PendingReadout');
   if (readout) readout.textContent = `Punto impostato: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
