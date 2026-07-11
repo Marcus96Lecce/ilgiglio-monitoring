@@ -233,6 +233,10 @@
   <button class="secondary" onclick="showHomeView()" style="margin-bottom:16px;">← Torna alla dashboard</button>
 
   <div id="offlineBanner" class="hint" style="background:#fff7e0;border:1px solid #e0c060;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;"></div>
+  <div id="iosBanner" style="display:none;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:8px;padding:9px 12px;margin-bottom:14px;font-size:13px;">
+    📲 <b>Installa su iPhone/iPad:</b> tocca <b>Condividi</b> (□↑) → <b>Aggiungi a Home</b> — funziona anche completamente offline sulle dune senza campo.
+    <button type="button" onclick="document.getElementById('iosBanner').style.display='none'" style="float:right;background:none;border:none;font-size:16px;cursor:pointer;line-height:1;">✕</button>
+  </div>
 
   <button type="button" class="nav-tile" onclick="showCarpoView()">
     <span class="nav-tile-icon">🌵</span>
@@ -894,18 +898,55 @@ function removeFromQueue(id){
   if (!confirm('Rimuovere questo elemento dalla coda? Non verrà caricato.')) return;
   saveOfflineQueue(getOfflineQueue().filter(i => i.id !== id));
 }
+/* ---------------- "Install app" (PWA) — same behavior as the sibling NRDS app: once installed
+   (Add to Home Screen / desktop install), the app opens full-screen and the service worker below lets
+   it launch, browse previously-loaded data/maps, and queue new submissions with zero connectivity. ---------------- */
+let _pwaInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  renderOfflineBanner();
+});
+window.addEventListener('appinstalled', function() {
+  _pwaInstallPrompt = null;
+  renderOfflineBanner();
+});
+function installPwa() {
+  if (!_pwaInstallPrompt) return;
+  _pwaInstallPrompt.prompt();
+  _pwaInstallPrompt.userChoice.then(function(r) {
+    if (r.outcome === 'accepted') _pwaInstallPrompt = null;
+    renderOfflineBanner();
+  });
+}
 function renderOfflineBanner(){
   const banner = document.getElementById('offlineBanner');
   if (!banner) return;
   const queue = getOfflineQueue();
   const online = navigator.onLine;
-  if (online && !queue.length){ banner.style.display = 'none'; return; }
+  const showInstall = !!_pwaInstallPrompt;
+  if (online && !queue.length && !showInstall){ banner.style.display = 'none'; return; }
   banner.style.display = '';
   let html = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
     + '<span><b>'+(online?'🟡 Online':'🔴 Offline — moduli in coda sul dispositivo')+'</b></span>';
+  if (!online){
+    // Roughly how fresh the offline-viewable data is: every successful fetchTable() call touches
+    // _dbSave(table,...), so the newest of those timestamps across all tables tells you how stale
+    // what you're currently looking at might be.
+    let newest = null;
+    for (const t of TABLES){
+      const cached = _dbLoad(t);
+      if (cached && (!newest || cached.ts > newest)) newest = cached.ts;
+    }
+    if (newest) html += '<span class="muted" style="font-size:12px;">📦 Dati in cache dal ' + new Date(newest).toLocaleString('it-IT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) + ' — mappa e conteggi mostrano quella versione</span>';
+    else html += '<span class="muted" style="font-size:12px;">Nessun dato ancora in cache — vai online una volta per abilitare la modalità offline completa</span>';
+  }
   if (queue.length){
     html += '<span class="muted">'+queue.length+' invio'+(queue.length===1?'':'i')+' in coda</span>'
       + '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="syncOfflineQueue()" '+(online?'':'disabled')+'>⬆ Sincronizza ora</button>';
+  }
+  if (showInstall) {
+    html += '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;background:#0e8a71;color:#fff;border-color:#0e8a71;" onclick="installPwa()">📲 Installa app</button>';
   }
   html += '</div>';
   if (queue.length){
@@ -1848,6 +1889,22 @@ const today = new Date().toISOString().slice(0,10);
 ['carpoCheckDate','survivalCheckDate','nestDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; });
 renderStatCards();
 renderDownloadButtons();
+
+// iOS "Add to Home Screen" hint — shown only on iPhone/iPad Safari that hasn't installed the app yet
+// (iOS doesn't support the beforeinstallprompt API the "Installa app" button above relies on).
+(function(){
+  var isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone;
+  var dismissed = localStorage.getItem('_ilgiglio_ios_banner_dismissed');
+  if (isIos && !dismissed) {
+    var b = document.getElementById('iosBanner');
+    if (b) {
+      b.style.display = '';
+      b.querySelector('button').addEventListener('click', function() {
+        localStorage.setItem('_ilgiglio_ios_banner_dismissed', '1');
+      });
+    }
+  }
+})();
 </script>
 </body>
 </html>
