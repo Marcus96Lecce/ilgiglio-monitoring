@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0e8a71">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ILGIGLIO">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ILGIGLIO – Monitoraggio LIFE Salento Dunes</title>
+<style>
+  /* ── Theme: reused verbatim from the sibling NRDS Tahiti app (same visual identity across both
+     conservation-monitoring apps) — dark opaque background, emerald-teal header, forest-metal buttons,
+     opaque near-white cards. Only branding text/icons differ between the two apps. ── */
+  :root{
+    --green:#2e7d32; --green-dark:#1b5e20; --green-light:#43a047; --green-xlight:#e8f5e9;
+    --bg:#1d1712; --card:#e6e8e2;
+    --border:#d4e4d4; --text:#1a2418; --muted:#637061;
+    --shadow-sm:0 2px 8px rgba(0,0,0,.35); --shadow-md:0 8px 26px rgba(0,0,0,.5);
+    --r:10px;
+    --metal-hi:#7c9a80; --metal-mid:#3c5c40; --metal-lo:#1b2e1d; --metal-edge:#0e1a0f;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;}
+
+  header{
+    background:linear-gradient(135deg,#063a33 0%,#0e8a71 50%,#042420 100%);
+    color:#fff;padding:18px 24px;
+    display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px;
+    box-shadow:0 3px 14px rgba(0,0,0,.22);
+  }
+  header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:.3px;text-shadow:0 1px 3px rgba(0,0,0,.25);}
+  header p{margin:5px 0 0;font-size:13px;opacity:.88;}
+  .nav-btn{
+    background:rgba(255,255,255,.14);color:#fff;
+    border:1.5px solid rgba(255,255,255,.35);border-radius:50%;
+    width:38px;height:38px;font-size:22px;font-weight:600;cursor:pointer;
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    transition:background .2s,border-color .2s;
+  }
+  .nav-btn:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.65);}
+  .add-elements-menu{
+    position:fixed;right:10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    box-shadow:var(--shadow-md);padding:8px;z-index:1000;
+    display:flex;flex-direction:column;gap:6px;min-width:200px;max-width:calc(100vw - 20px);
+  }
+  .add-elements-menu button{white-space:nowrap;text-align:left;}
+  .map-text-label{
+    font-size:10px;font-weight:600;color:#333;background:rgba(255,255,255,.88);
+    padding:1px 4px;border-radius:4px;white-space:nowrap;line-height:1.5;
+    transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.22);
+  }
+
+  .wrap{max-width:1020px;margin:0 auto;padding:22px 20px;}
+
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    padding:20px 22px;margin-bottom:20px;
+    box-shadow:var(--shadow-sm);transition:box-shadow .22s;
+  }
+  .card:hover{box-shadow:var(--shadow-md);}
+  .card h2{
+    margin:0 0 10px;font-size:16px;color:var(--green-dark);font-weight:700;
+    padding-bottom:7px;border-bottom:2px solid var(--green-xlight);
+  }
+  .card .hint{
+    font-size:12.5px;color:var(--muted);margin-bottom:12px;
+    border-left:3px solid #b5d5b5;padding-left:10px;line-height:1.65;
+  }
+  .card > details > summary{cursor:pointer;margin-bottom:8px;}
+
+  details.collapsible{
+    border:1px solid var(--border);border-radius:var(--r);background:#fafcfa;
+    overflow:hidden;margin-bottom:10px;
+  }
+  details.collapsible > summary{
+    list-style:none;cursor:pointer;
+    padding:12px 16px;font-weight:600;font-size:13.5px;color:var(--green-dark);
+    display:flex;align-items:center;gap:8px;
+    transition:background .15s;user-select:none;
+  }
+  details.collapsible > summary::-webkit-details-marker,
+  details.collapsible > summary::marker{display:none;}
+  details.collapsible > summary:hover{background:#edf5ed;}
+  details.collapsible[open] > summary{background:var(--green-xlight);}
+  details.collapsible > summary .caret{
+    margin-left:auto;font-size:12px;color:var(--muted);
+    transition:transform .25s ease;display:inline-block;
+  }
+  details.collapsible[open] > summary .caret{transform:rotate(180deg);}
+  details.collapsible > .coll-body{padding:14px 16px 18px;}
+  details.collapsible[open] > .coll-body{animation:fadeIn .22s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+
+  button{
+    background:linear-gradient(150deg,var(--metal-hi) 0%,var(--metal-mid) 45%,var(--metal-lo) 100%);
+    color:#fff;border:1px solid var(--metal-edge);border-radius:var(--r);
+    padding:9px 18px;font-size:13.5px;cursor:pointer;font-weight:500;letter-spacing:.2px;
+    box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.35);
+    transition:box-shadow .18s,transform .12s,filter .18s;
+  }
+  button:hover{filter:brightness(1.2);box-shadow:0 4px 16px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.3);transform:translateY(-1px);}
+  button:active{transform:translateY(0);box-shadow:0 1px 4px rgba(0,0,0,.4);filter:brightness(.92);}
+  button:disabled{background:#5a5d61;box-shadow:none;cursor:not-allowed;transform:none;filter:none;opacity:.6;}
+  button.secondary{
+    background:linear-gradient(150deg,#f6f7f8 0%,#e3e5e7 60%,#cfd2d6 100%);
+    color:var(--metal-lo);border:1px solid #b7bac0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+  }
+  button.secondary:hover{filter:brightness(1.05);box-shadow:0 3px 10px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.7);transform:translateY(-1px);}
+  button.secondary:active{transform:translateY(0);}
+  button.secondary.active{
+    background:linear-gradient(150deg,var(--metal-hi) 0%,var(--metal-mid) 100%);
+    color:#fff;border-color:var(--metal-edge);
+  }
+
+  .nav-tile{
+    display:flex;align-items:center;gap:14px;width:100%;
+    padding:18px 20px;margin-bottom:14px;text-align:left;font-size:16px;
+  }
+  .nav-tile .nav-tile-icon{font-size:26px;line-height:1;flex-shrink:0;}
+  .nav-tile .nav-tile-text{display:flex;flex-direction:column;gap:3px;}
+  .nav-tile .nav-tile-title{font-weight:700;}
+  .nav-tile .nav-tile-sub{font-size:12px;font-weight:400;opacity:.88;letter-spacing:.1px;}
+
+  select{
+    font-size:13px;padding:6px 9px;border:1.5px solid var(--border);border-radius:var(--r);
+    background:#fff;cursor:pointer;transition:border-color .15s;
+  }
+  select:focus{border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(46,125,50,.15);}
+  input[type=date],input[type=text],input[type=number],textarea{
+    font-size:13px;padding:5px 8px;border:1.5px solid var(--border);border-radius:var(--r);
+    background:#fff;transition:border-color .15s;font-family:inherit;
+  }
+  input[type=date]:focus,input[type=text]:focus,input[type=number]:focus,textarea:focus{
+    border-color:var(--green);outline:none;box-shadow:0 0 0 2px rgba(46,125,50,.15);
+  }
+  label.muted{display:inline-flex;align-items:center;gap:6px;}
+  input[type=file]{font-size:13px;}
+
+  .status-list{list-style:none;margin:10px 0 0;padding:0;font-family:Consolas,monospace;font-size:12.5px;}
+  .ok{color:var(--green-dark);} .warn{color:#b8860b;} .err{color:#b22222;}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .badge{
+    display:inline-block;padding:3px 10px;border-radius:12px;font-size:11.5px;font-weight:500;
+    background:var(--green-xlight);color:var(--green-dark);border:1px solid #b5d5b5;
+  }
+
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:10px;}
+  .stat{
+    background:linear-gradient(145deg,#f6fcf6 0%,#edf5ed 100%);
+    border:1px solid #c6dcc6;border-radius:var(--r);
+    padding:12px 14px;text-align:center;
+    box-shadow:0 1px 4px rgba(0,40,0,.05);
+    transition:box-shadow .2s,transform .2s;
+  }
+  .stat:hover{box-shadow:0 4px 12px rgba(0,40,0,.1);transform:translateY(-2px);}
+  .stat .num{font-size:24px;font-weight:700;color:var(--green-dark);line-height:1.2;}
+  .stat .lbl{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4;}
+
+  table.preview{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+  table.preview th,table.preview td{border:1px solid var(--border);padding:5px 8px;text-align:left;}
+  table.preview th{background:linear-gradient(135deg,#eef6ee,#e4f0e4);position:sticky;top:0;font-weight:600;color:var(--green-dark);}
+  table.preview tr:nth-child(even) td{background:#f8fbf8;}
+  .table-scroll{max-height:320px;overflow:auto;border:1px solid var(--border);border-radius:var(--r);}
+
+  .muted{color:var(--muted);font-size:12.5px;}
+  .swatch{width:13px;height:13px;border-radius:3px;display:inline-block;box-shadow:0 1px 2px rgba(0,0,0,.1);}
+
+  .geo-picker-map{height:260px;width:100%;border:1px solid var(--border);border-radius:var(--r);margin-top:2px;cursor:crosshair;}
+  .map-flex-row{display:flex;gap:14px;align-items:flex-start;margin-top:8px;}
+  .map-container{flex:1;min-width:0;height:560px;border:1px solid var(--border);border-radius:var(--r);}
+
+  .photo-preview{position:relative;width:64px;height:64px;flex-shrink:0;}
+  .photo-preview img{width:100%;height:100%;object-fit:cover;border-radius:6px;border:1px solid var(--border);}
+  .photo-preview .x{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#c0392b;color:#fff;border:none;font-size:11px;line-height:18px;text-align:center;cursor:pointer;padding:0;}
+
+  @media (max-width:640px){
+    .map-flex-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>ILGIGLIO — Monitoraggio LIFE Salento Dunes</h1>
+    <p>CNR-IRET · UniSalento · Legambiente Puglia · LIPU Puglia — database condiviso in tempo reale</p>
+  </div>
+  <div class="row" style="gap:10px;">
+    <button class="nav-btn" id="addElementsBtn" onclick="toggleAddElementsMenu()" title="Disegna una nuova zona/plot/punto/linea sulla mappa">✎</button>
+    <button class="nav-btn" onclick="showSubmitView()" title="Registra un nuovo dato">+</button>
+  </div>
+</header>
+
+<div id="addElementsMenu" class="add-elements-menu" style="display:none;top:64px;"></div>
+
+<div class="wrap" id="homeView">
+
+  <div class="card">
+    <h2>1. Dati in tempo reale</h2>
+    <div class="hint">I dati si caricano automaticamente dal database condiviso — ogni visitatore vede le stesse azioni aggiornate, nessun caricamento manuale necessario. Premi il tasto + in alto per registrare un nuovo dato; compare qui, sulla mappa e nei download per tutti entro pochi secondi.</div>
+    <div id="liveDataStatus" class="muted">Connessione…</div>
+    <div id="statCards" class="grid3"></div>
+  </div>
+
+  <button type="button" class="nav-tile" onclick="showMapView()">
+    <span class="nav-tile-icon">🗺️</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">2. Mappa</span>
+      <span class="nav-tile-sub">Plot, zone ed osservazioni di tutti i moduli</span>
+    </span>
+  </button>
+
+  <div class="card" id="downloadsCard">
+    <details id="downloadsDetails">
+    <summary style="cursor:pointer;"><h2 style="display:inline;margin:0;">Download</h2></summary>
+    <div class="hint" style="margin-top:8px;">Esporta ogni dataset in CSV. Ogni tasto scarica i dati attualmente caricati nell'app.</div>
+    <div class="row" style="flex-wrap:wrap;gap:8px;margin-top:10px;" id="downloadButtons"></div>
+    </details>
+  </div>
+
+</div>
+
+<!-- ═══════════════════ Submit hub: one big button per field module ═══════════════════ -->
+<div class="wrap" id="submitView" style="display:none;">
+
+  <button class="secondary" onclick="showHomeView()" style="margin-bottom:16px;">← Torna alla dashboard</button>
+
+  <div id="offlineBanner" class="hint" style="background:#fff7e0;border:1px solid #e0c060;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;"></div>
+
+  <button type="button" class="nav-tile" onclick="showCarpoView()">
+    <span class="nav-tile-icon">🌵</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">1. Eradicazione Carpobrotus</span>
+      <span class="nav-tile-sub">Rimozione + controllo mensile ricacci</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showTransplantView()">
+    <span class="nav-tile-icon">🌱</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">2. Trapianto Pancratium</span>
+      <span class="nav-tile-sub">Reintroduzione + controllo trimestrale sopravvivenza</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showPhenoView()">
+    <span class="nav-tile-icon">🌸</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">3. Fenologia Pancratium</span>
+      <span class="nav-tile-sub">Emergenza, fioritura, fruttificazione</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showCakileView()">
+    <span class="nav-tile-icon">🍃</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">4. Monitoraggio Cakile</span>
+      <span class="nav-tile-sub">Nurse plant — copertura, NDVI, raccolta semi</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showCharadriusView()">
+    <span class="nav-tile-icon">🐦</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">5. Fratino (Charadrius alexandrinus)</span>
+      <span class="nav-tile-sub">Point count + log nidi</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showCitsciView()">
+    <span class="nav-tile-icon">📸</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">6. Osservazioni citizen-science</span>
+      <span class="nav-tile-sub">Log libero specie, con foto</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showSoilView()">
+    <span class="nav-tile-icon">🧪</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">7. Campionamento suolo/microbioma</span>
+      <span class="nav-tile-sub">Log campione + risultati di laboratorio</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showDroneView()">
+    <span class="nav-tile-icon">🛰️</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">8. Volo drone NDVI/CIR</span>
+      <span class="nav-tile-sub">Log metadati volo (data, sito, pilota)</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showAtView()">
+    <span class="nav-tile-icon">⚙️</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">9. Tipi di attività personalizzati</span>
+      <span class="nav-tile-sub">Definisci nuovi tipi di dato da registrare</span>
+    </span>
+  </button>
+
+  <button type="button" class="nav-tile" onclick="showAeEntryView()">
+    <span class="nav-tile-icon">📝</span>
+    <span class="nav-tile-text">
+      <span class="nav-tile-title">10. Registra un'attività</span>
+      <span class="nav-tile-sub">Voce generica per qualunque tipo definito</span>
+    </span>
+  </button>
+
+</div>
+
+<!-- ═══════════════════ Map view ═══════════════════ -->
+<div class="wrap" id="mapView" style="display:none;">
+  <button class="secondary" onclick="showHomeView()" style="margin-bottom:16px;">← Torna alla dashboard</button>
+  <div class="card">
+    <h2>2. Mappa</h2>
+    <div class="hint">I confini mostrano sempre plot/zone registrati. Scegli quali livelli mostrare.</div>
+    <div class="row" style="margin-bottom:12px;">
+      <div style="position:relative;display:inline-block;">
+        <button class="secondary" id="mapLayersBtn" onclick="toggleMapLayersDropdown()" style="padding:5px 14px;font-size:13px;">
+          Livelli <span id="mapLayersCount" style="opacity:.7;">(0)</span> ▾
+        </button>
+        <div id="mapLayersPanel" style="display:none;position:absolute;left:0;top:calc(100% + 4px);background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 16px;z-index:2000;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.13);">
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_carpo" onchange="toggleMapLayer('carpo',this.checked)"> 🌵 Eradicazione Carpobrotus</label>
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_transplant" onchange="toggleMapLayer('transplant',this.checked)"> 🌱 Trapianto Pancratium</label>
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_pheno" onchange="toggleMapLayer('pheno',this.checked)"> 🌸 Fenologia Pancratium</label>
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_cakile" onchange="toggleMapLayer('cakile',this.checked)"> 🍃 Cakile</label>
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_charadrius" onchange="toggleMapLayer('charadrius',this.checked)"> 🐦 Fratino</label>
+          <label class="muted" style="display:block;margin-bottom:7px;"><input type="checkbox" id="ml_citsci" onchange="toggleMapLayer('citsci',this.checked)"> 📸 Citizen science</label>
+          <label class="muted" style="display:block;margin-bottom:0;"><input type="checkbox" id="ml_soil" onchange="toggleMapLayer('soil',this.checked)"> 🧪 Campioni suolo</label>
+        </div>
+      </div>
+    </div>
+    <div class="map-flex-row">
+      <div id="mapContainer" class="map-container"></div>
+    </div>
+    <div id="mapLegend" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 1. Carpobrotus eradication + re-sprout check ═══════════════════ -->
+<div class="wrap" id="carpoFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>1. Eradicazione Carpobrotus edulis</h2>
+    <div class="hint">Registra un intervento di eradicazione (rimozione meccanica/manuale/aspirazione). Tocca la mappa per impostare la posizione, oppure importa un punto GPX.</div>
+    <form id="carpoForm" onsubmit="submitCarpoForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="carpoDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="carpoObserver" placeholder="Nome" required></label>
+        <label class="muted">Organizzazione: <select id="carpoOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('carpoGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="carpoGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'carpo')" style="display:none;">
+        <span class="muted" id="carpoGpxStatus">Tocca la mappa per aggiungere un punto (uno solo per invio), oppure importa un waypoint da un GPS palmare.</span>
+      </div>
+      <div id="carpoPickerMap" class="geo-picker-map"></div>
+      <div id="carpoPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="carpoPlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">Area trattata (m²): <input type="number" id="carpoArea" step="0.1" style="width:100px;"></label>
+        <label class="muted">Biomassa rimossa (kg): <input type="number" id="carpoBiomass" step="0.1" style="width:100px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Metodo: <select id="carpoMethod"><option value="">Scegli…</option><option>Meccanico</option><option>Manuale</option><option>Aspirazione</option></select></label>
+        <label class="muted">Destinazione necromassa: <input type="text" id="carpoDisposal" style="width:220px;"></label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="carpoNotes" style="width:100%;"></label>
+      <button type="submit">Invia evento eradicazione</button>
+      <span id="carpoSubmitStatus" class="muted"></span>
+    </form>
+    <details class="collapsible" style="margin-top:16px;">
+      <summary>Registra un controllo ricacci (follow-up mensile)<span class="caret">▾</span></summary>
+      <div class="coll-body">
+        <form id="carpoCheckForm" onsubmit="submitCarpoCheckForm(event)">
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Evento originale: <select id="carpoCheckParent" required><option value="">Scegli…</option></select></label>
+            <label class="muted">Data controllo: <input type="date" id="carpoCheckDate" required></label>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Osservatore: <input type="text" id="carpoCheckObserver" required></label>
+            <label class="muted">Organizzazione: <select id="carpoCheckOrg" required>
+              <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+            </select></label>
+            <label class="muted">% ricacci: <input type="number" id="carpoCheckPct" min="0" max="100" step="0.1" style="width:80px;"></label>
+          </div>
+          <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="carpoCheckNotes" style="width:100%;"></label>
+          <button type="submit">Invia controllo</button>
+          <span id="carpoCheckSubmitStatus" class="muted"></span>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══════════════════ 2. Pancratium transplant + survival check ═══════════════════ -->
+<div class="wrap" id="transplantFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>2. Trapianto / Reintroduzione Pancratium maritimum</h2>
+    <div class="hint">Registra un evento di trapianto (bulbi da vivaio o raccolti in natura).</div>
+    <form id="transplantForm" onsubmit="submitTransplantForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="transplantDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="transplantObserver" required></label>
+        <label class="muted">Organizzazione: <select id="transplantOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('transplantGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="transplantGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'transplant')" style="display:none;">
+        <span class="muted" id="transplantGpxStatus">Tocca la mappa per impostare la posizione del trapianto.</span>
+      </div>
+      <div id="transplantPickerMap" class="geo-picker-map"></div>
+      <div id="transplantPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="transplantPlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">N° bulbi: <input type="number" id="transplantNBulbs" style="width:90px;"></label>
+        <label class="muted">Provenienza bulbi: <input type="text" id="transplantSource" placeholder="es. vivaio CNR-IRET F1" style="width:220px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted"><input type="checkbox" id="transplantAmf"> Inoculo AMF (Glomeraceae)</label>
+        <label class="muted"><input type="checkbox" id="transplantNurse"> Presenza nurse plant Cakile</label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="transplantNotes" style="width:100%;"></label>
+      <button type="submit">Invia evento trapianto</button>
+      <span id="transplantSubmitStatus" class="muted"></span>
+    </form>
+    <details class="collapsible" style="margin-top:16px;">
+      <summary>Registra un controllo sopravvivenza (trimestrale)<span class="caret">▾</span></summary>
+      <div class="coll-body">
+        <form id="survivalCheckForm" onsubmit="submitSurvivalCheckForm(event)">
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Trapianto originale: <select id="survivalCheckParent" required><option value="">Scegli…</option></select></label>
+            <label class="muted">Data controllo: <input type="date" id="survivalCheckDate" required></label>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Osservatore: <input type="text" id="survivalCheckObserver" required></label>
+            <label class="muted">Organizzazione: <select id="survivalCheckOrg" required>
+              <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+            </select></label>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">N° vivi: <input type="number" id="survivalCheckAlive" style="width:90px;"></label>
+            <label class="muted">N° morti: <input type="number" id="survivalCheckDead" style="width:90px;"></label>
+          </div>
+          <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="survivalCheckNotes" style="width:100%;"></label>
+          <button type="submit">Invia controllo</button>
+          <span id="survivalCheckSubmitStatus" class="muted"></span>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══════════════════ 3. Pancratium phenology ═══════════════════ -->
+<div class="wrap" id="phenoFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>3. Fenologia Pancratium maritimum</h2>
+    <div class="hint">Emergenza, fioritura, fruttificazione — per plot o per individuo/quadrato marcato.</div>
+    <form id="phenoForm" onsubmit="submitPhenoForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="phenoDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="phenoObserver" required></label>
+        <label class="muted">Organizzazione: <select id="phenoOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('phenoGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="phenoGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'pheno')" style="display:none;">
+        <span class="muted" id="phenoGpxStatus"></span>
+      </div>
+      <div id="phenoPickerMap" class="geo-picker-map"></div>
+      <div id="phenoPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato (opzionale).</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="phenoPlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">Individuo/quadrato (tag): <input type="text" id="phenoTag" style="width:140px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Stadio: <select id="phenoStage">
+          <option value="">Scegli…</option><option>Emergenza</option><option>Fioritura</option><option>Fruttificazione</option><option>Dormienza</option>
+        </select></label>
+        <label class="muted">Conteggio individui: <input type="number" id="phenoCount" style="width:100px;"></label>
+        <label class="muted">Altezza (cm): <input type="number" id="phenoHeight" step="0.1" style="width:100px;"></label>
+      </div>
+      <div id="phenoExtraFields" style="margin-bottom:10px;"></div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="phenoNotes" style="width:100%;"></label>
+      <button type="submit">Invia rilievo fenologico</button>
+      <span id="phenoSubmitStatus" class="muted"></span>
+    </form>
+    <details class="collapsible" style="margin-top:16px;">
+      <summary>Campi aggiuntivi personalizzati<span class="caret">▾</span></summary>
+      <div class="coll-body">
+        <div class="hint">Aggiungi qui altri campi da tracciare per ogni rilievo fenologico — si aggiungono al modulo sopra per tutti, senza bisogno di modifiche al codice.</div>
+        <div id="phenoFieldDefRows"></div>
+        <button type="button" class="secondary" style="margin-top:6px;" onclick="addPhenoFieldDefRow()">+ Aggiungi campo</button>
+        <div class="row" style="margin-top:10px;">
+          <button type="button" onclick="savePhenoFieldDefs()">Salva campi</button>
+          <span id="phenoFieldDefsStatus" class="muted"></span>
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══════════════════ 4. Cakile monitoring ═══════════════════ -->
+<div class="wrap" id="cakileFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>4. Monitoraggio Cakile maritima (nurse plant)</h2>
+    <div class="hint">Copertura %, NDVI, photointercept e raccolta semi per il seed bank locale.</div>
+    <form id="cakileForm" onsubmit="submitCakileForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="cakileDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="cakileObserver" required></label>
+        <label class="muted">Organizzazione: <select id="cakileOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('cakileGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="cakileGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'cakile')" style="display:none;">
+        <span class="muted" id="cakileGpxStatus"></span>
+      </div>
+      <div id="cakilePickerMap" class="geo-picker-map"></div>
+      <div id="cakilePendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="cakilePlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">Copertura (%): <input type="number" id="cakileCover" min="0" max="100" style="width:90px;"></label>
+        <label class="muted">NDVI: <input type="number" id="cakileNdvi" step="0.01" style="width:90px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Semi raccolti (kg): <input type="number" id="cakileSeed" step="0.01" style="width:100px;"></label>
+        <label class="muted">Note photointercept: <input type="text" id="cakilePhotointercept" style="width:220px;"></label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="cakileNotes" style="width:100%;"></label>
+      <button type="submit">Invia rilievo Cakile</button>
+      <span id="cakileSubmitStatus" class="muted"></span>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════ 5. Charadrius point count + nest ═══════════════════ -->
+<div class="wrap" id="charadriusFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>5. Charadrius alexandrinus (Fratino) — point count</h2>
+    <div class="hint">Conteggio a punto fisso, stesso protocollo delle survey ornitologiche standard.</div>
+    <form id="charadriusForm" onsubmit="submitCharadriusForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="charDate" required></label>
+        <label class="muted">Ora inizio: <input type="text" id="charTimeStart" placeholder="hh:mm" style="width:80px;"></label>
+        <label class="muted">Osservatore: <input type="text" id="charObserver" required></label>
+        <label class="muted">Organizzazione: <select id="charOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('charGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="charGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'char')" style="display:none;">
+        <span class="muted" id="charGpxStatus"></span>
+      </div>
+      <div id="charPickerMap" class="geo-picker-map"></div>
+      <div id="charPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="charPlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">Stazione: <input type="text" id="charStation" style="width:100px;"></label>
+        <label class="muted">N° sessione: <input type="number" id="charSession" style="width:80px;"></label>
+        <label class="muted">Durata (min): <input type="number" id="charDuration" value="10" style="width:70px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Cielo: <select id="charSky"><option value="">—</option><option>Sereno</option><option>Parz. nuvoloso</option><option>Nuvoloso</option></select></label>
+        <label class="muted">Vento (Beaufort): <input type="number" id="charWind" min="0" max="12" style="width:70px;"></label>
+        <label class="muted">Pioggia: <select id="charRain"><option value="">—</option><option>No</option><option>Leggera</option><option>Forte</option></select></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Fratini visti: <input type="number" id="charSeen" style="width:80px;"></label>
+        <label class="muted">Fratini uditi: <input type="number" id="charHeard" style="width:80px;"></label>
+        <label class="muted">Fascia distanza: <select id="charDistBand">
+          <option value="">—</option><option>0-25m</option><option>25-50m</option><option>50-100m</option><option>&gt;100m</option>
+        </select></label>
+        <label class="muted">Comportamento: <input type="text" id="charBehaviour" style="width:140px;"></label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:6px;">Altre specie viste (facoltativo): <input type="text" id="charOtherSpecies" placeholder="es. Sterna, Gabbiano corso…" style="width:100%;"></label>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="charNotes" style="width:100%;"></label>
+      <button type="submit">Invia point count</button>
+      <span id="charSubmitStatus" class="muted"></span>
+    </form>
+    <details class="collapsible" style="margin-top:16px;">
+      <summary>Registra un nido<span class="caret">▾</span></summary>
+      <div class="coll-body">
+        <form id="nestForm" onsubmit="submitNestForm(event)">
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Data: <input type="date" id="nestDate" required></label>
+            <label class="muted">Osservatore: <input type="text" id="nestObserver" required></label>
+            <label class="muted">Organizzazione: <select id="nestOrg" required>
+              <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+            </select></label>
+          </div>
+          <div id="nestPickerMap" class="geo-picker-map" style="height:200px;"></div>
+          <div id="nestPendingReadout" class="muted" style="margin:6px 0;">Tocca la mappa per la posizione del nido.</div>
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">ID nido: <input type="text" id="nestId" style="width:120px;"></label>
+            <label class="muted">Uova: <input type="number" id="nestEggs" style="width:70px;"></label>
+            <label class="muted">Pulcini: <input type="number" id="nestChicks" style="width:70px;"></label>
+            <label class="muted">Esito: <select id="nestFledge">
+              <option value="">—</option><option>Attivo</option><option>Vuoto</option><option>Fallito</option><option>Involato</option>
+            </select></label>
+          </div>
+          <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="nestNotes" style="width:100%;"></label>
+          <button type="submit">Invia nido</button>
+          <span id="nestSubmitStatus" class="muted"></span>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══════════════════ 6. Citizen science ═══════════════════ -->
+<div class="wrap" id="citsciFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>6. Osservazioni citizen-science</h2>
+    <div class="hint">Log libero per qualunque avvistamento sul campo — Pancratium, Fratino, o altro.</div>
+    <form id="citsciForm" onsubmit="submitCitsciForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="citsciDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="citsciObserver" required></label>
+        <label class="muted">Organizzazione: <select id="citsciOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('citsciGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="citsciGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'citsci')" style="display:none;">
+        <span class="muted" id="citsciGpxStatus"></span>
+      </div>
+      <div id="citsciPickerMap" class="geo-picker-map"></div>
+      <div id="citsciPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Specie (nome comune): <input type="text" id="citsciCommon" style="width:180px;"></label>
+        <label class="muted">Specie (nome scientifico): <input type="text" id="citsciSci" style="width:180px;"></label>
+        <label class="muted">Quantità: <input type="number" id="citsciQty" style="width:80px;"></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <label class="muted">Foto (facoltativo): <input type="file" id="citsciPhotoInput" accept="image/*" multiple onchange="onCitsciPhotoSelected(event)"></label>
+      </div>
+      <div id="citsciPhotoPreview" class="row" style="margin-bottom:10px;"></div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="citsciNotes" style="width:100%;"></label>
+      <button type="submit">Invia osservazione</button>
+      <span id="citsciSubmitStatus" class="muted"></span>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════ 7. Soil sample + lab result ═══════════════════ -->
+<div class="wrap" id="soilFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>7. Campionamento suolo / microbioma</h2>
+    <div class="hint">Registra il prelievo. I risultati di laboratorio (pH, ITS, ecc.) si aggiungono più avanti, quando disponibili, come voce separata collegata a questo campione.</div>
+    <form id="soilForm" onsubmit="submitSoilForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="soilDate" required></label>
+        <label class="muted">Osservatore: <input type="text" id="soilObserver" required></label>
+        <label class="muted">Organizzazione: <select id="soilOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:6px;">
+        <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('soilGpxInput').click()">📥 Importa GPX</button>
+        <input type="file" id="soilGpxInput" accept=".gpx" onchange="onModuleGpxFileSelected(event,'soil')" style="display:none;">
+        <span class="muted" id="soilGpxStatus"></span>
+      </div>
+      <div id="soilPickerMap" class="geo-picker-map"></div>
+      <div id="soilPendingReadout" class="muted" style="margin-top:6px;">Nessun punto selezionato.</div>
+      <div class="row" style="margin:10px 0;">
+        <label class="muted">Plot/zona: <select id="soilPlot"><option value="">Nessuno</option></select></label>
+        <label class="muted">ID campione: <input type="text" id="soilSampleId" style="width:140px;"></label>
+        <label class="muted">Profondità (cm): <input type="number" id="soilDepth" step="0.1" style="width:100px;"></label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="soilNotes" style="width:100%;"></label>
+      <button type="submit">Invia campione</button>
+      <span id="soilSubmitStatus" class="muted"></span>
+    </form>
+    <details class="collapsible" style="margin-top:16px;">
+      <summary>Aggiungi risultati di laboratorio<span class="caret">▾</span></summary>
+      <div class="coll-body">
+        <form id="labResultForm" onsubmit="submitLabResultForm(event)">
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">Campione: <select id="labResultSample" required><option value="">Scegli…</option></select></label>
+            <label class="muted">Inserito da: <input type="text" id="labResultEnteredBy" required></label>
+          </div>
+          <div class="row" style="margin-bottom:10px;">
+            <label class="muted">pH: <input type="number" id="labPh" step="0.01" style="width:80px;"></label>
+            <label class="muted">Conducibilità: <input type="number" id="labConductivity" step="0.01" style="width:100px;"></label>
+            <label class="muted">C organico (%): <input type="number" id="labOrganicC" step="0.01" style="width:100px;"></label>
+            <label class="muted">N totale (%): <input type="number" id="labTotalN" step="0.01" style="width:100px;"></label>
+          </div>
+          <label class="muted">ID batch ITS: <input type="text" id="labItsBatch" style="width:160px;"></label>
+          <label class="muted" style="display:block;margin:10px 0;">Note: <input type="text" id="labResultNotes" style="width:100%;"></label>
+          <button type="submit">Invia risultati</button>
+          <span id="labResultSubmitStatus" class="muted"></span>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ═══════════════════ 8. Drone survey log ═══════════════════ -->
+<div class="wrap" id="droneFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>8. Volo drone NDVI/CIR</h2>
+    <div class="hint">Solo metadati del volo — niente caricamento immagini/raster in questa versione.</div>
+    <form id="droneForm" onsubmit="submitDroneForm(event)">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Data: <input type="date" id="droneDate" required></label>
+        <label class="muted">Sito: <input type="text" id="droneSite" value="Salento LE" style="width:160px;"></label>
+        <label class="muted">Pilota: <input type="text" id="dronePilot" required></label>
+        <label class="muted">Organizzazione: <select id="droneOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Tipo volo: <select id="droneFlightType"><option value="">Scegli…</option><option>NDVI</option><option>CIR</option><option>RGB</option></select></label>
+        <label class="muted">Riferimento file (facoltativo): <input type="text" id="droneFileRef" style="width:220px;"></label>
+      </div>
+      <label class="muted" style="display:block;margin-bottom:10px;">Note: <input type="text" id="droneNotes" style="width:100%;"></label>
+      <button type="submit">Invia log volo</button>
+      <span id="droneSubmitStatus" class="muted"></span>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════ 9/10. Activity Types (generic catch-all) — reused from NRDS ═══════════════════ -->
+<div class="wrap" id="atFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>9. Tipi di attività personalizzati</h2>
+    <div class="hint">Per qualunque tipo di dato non coperto dai moduli dedicati — definisci qui i campi, poi registra le voci in "10. Registra un'attività".</div>
+    <div id="atListWrap"></div>
+    <button type="button" class="secondary" id="atToggleBtn" onclick="toggleActivityTypeBuilder()" style="margin-top:8px;">+ Nuovo tipo di attività</button>
+    <form id="atForm" style="display:none;margin-top:12px;" onsubmit="submitActivityTypeForm(event)">
+      <label class="muted" style="display:block;margin-bottom:8px;">Nome: <input type="text" id="atName" required style="width:100%;"></label>
+      <label class="muted" style="display:block;margin-bottom:8px;">Descrizione: <input type="text" id="atDescription" style="width:100%;"></label>
+      <label class="muted" style="display:block;margin-bottom:10px;">Colore: <input type="color" id="atColor" value="#2e7d32"></label>
+      <div id="atFieldRows"></div>
+      <button type="button" class="secondary" style="margin:6px 0;" onclick="addAtFieldRow()">+ Aggiungi campo</button>
+      <div class="row">
+        <button type="submit">Salva tipo di attività</button>
+        <span id="atSubmitStatus" class="muted"></span>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="aeFormView" style="display:none;">
+  <button class="secondary" onclick="showSubmitView()">← Torna ai moduli</button>
+  <div class="card">
+    <h2>10. Registra un'attività</h2>
+    <div id="aeNoTypesHint" class="hint" style="display:none;">Nessun tipo di attività definito ancora — creane uno in "9. Tipi di attività personalizzati".</div>
+    <form id="aeForm" onsubmit="submitActivityEntryForm(event)" style="display:none;">
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Tipo: <select id="aeType" required onchange="renderAeCustomFields()"><option value="">Scegli…</option></select></label>
+        <label class="muted">Data: <input type="date" id="aeDate" required></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Osservatore: <input type="text" id="aeObserver" required></label>
+        <label class="muted">Organizzazione: <select id="aeOrg" required>
+          <option value="">Scegli…</option><option>CNR-IRET</option><option>UniSalento</option><option>Legambiente</option><option>LIPU</option><option>Volontario</option><option>Altro</option>
+        </select></label>
+      </div>
+      <div class="row" style="margin-bottom:10px;">
+        <label class="muted">Sito: <input type="text" id="aeSite" value="Salento LE" style="width:140px;"></label>
+        <label class="muted">Zona: <input type="text" id="aeZone" style="width:160px;"></label>
+        <label class="muted">N° persone: <input type="number" id="aeNumberOfPerson" style="width:80px;"></label>
+      </div>
+      <div id="aeCustomFields"></div>
+      <label class="muted" style="display:block;margin:10px 0;">Commento: <input type="text" id="aeComment" style="width:100%;"></label>
+      <button type="submit">Invia attività</button>
+      <span id="aeSubmitStatus" class="muted"></span>
+    </form>
+  </div>
+</div>
+
+<div id="photoLightbox" class="bird-lightbox-backdrop" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;padding:20px;" onclick="if(event.target===this) closePhotoLightbox()">
+  <button type="button" class="secondary" style="position:absolute;top:16px;right:20px;padding:6px 12px;" onclick="closePhotoLightbox()">✕</button>
+  <img id="lightboxImg" style="max-width:90vw;max-height:78vh;object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5);" src="" alt="">
+</div>
+
+<!-- Leaflet 1.9.4 (same version/CDN as the sibling NRDS app) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script type="module">
+  import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+  // Same non-secret pattern as the sibling NRDS app: the anon/publishable key is meant to be public
+  // (like a Firebase web config) — access is enforced entirely by the Postgres RLS policies in
+  // Analysis/supabase_schema_ilgiglio_full.sql, not by hiding this value.
+  // TODO(Marco): replace with the real ILGIGLIO Supabase project URL + anon/publishable key once the
+  // project finishes provisioning (Project Settings -> API). The app runs fully offline-safe/mocked
+  // against a placeholder until then, but no real data will load or save.
+  const SUPABASE_URL = "REPLACE_WITH_ILGIGLIO_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "REPLACE_WITH_ILGIGLIO_ANON_KEY";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.sb = supabase;
+  window.dispatchEvent(new Event('supabase-ready'));
+</script>
+
+<script>
+/* ---------------- small shared helpers ---------------- */
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function downloadCSV(filename, rows, fields){
+  const esc = v => { const s = v==null ? '' : String(v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const csv = [fields.join(',')].concat(rows.map(r => fields.map(f => esc(r[f])).join(','))).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function whenSupabaseReady(cb){
+  if (window.sb) cb(); else window.addEventListener('supabase-ready', cb, { once: true });
+}
+
+/* ---------------- offline cache + submission queue (same pattern as the sibling NRDS app) ----------------
+   A field worker with no signal can still submit any of the forms below — rows get saved into
+   localStorage and automatically uploaded next time the device is back online. */
+const OFFLINE_QUEUE_KEY = '_ilgiglio_offline_queue';
+function _dbSave(key, payload){ try { localStorage.setItem('_ilgiglio_cache_'+key, JSON.stringify({ payload, ts: new Date().toISOString() })); } catch(e){} }
+function _dbLoad(key){ try { const raw = localStorage.getItem('_ilgiglio_cache_'+key); return raw ? JSON.parse(raw) : null; } catch(e){ return null; } }
+function getOfflineQueue(){ try { return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]'); } catch(e){ return []; } }
+function saveOfflineQueue(q){ localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(q)); renderOfflineBanner(); }
+function queueOffline(table, rows){
+  const q = getOfflineQueue();
+  q.push({ id: Date.now()+'_'+Math.random().toString(36).slice(2), table, rows, queuedAt: new Date().toISOString() });
+  saveOfflineQueue(q);
+}
+function isNetworkError(err){
+  if (!navigator.onLine) return true;
+  const msg = (err && err.message || '').toLowerCase();
+  return err instanceof TypeError || msg.includes('fetch') || msg.includes('network') || msg.includes('failed to fetch');
+}
+async function insertOrQueue(table, rows){
+  if (!navigator.onLine){ queueOffline(table, rows); return { queued: true }; }
+  try {
+    const { error } = await window.sb.from(table).insert(rows);
+    if (error) throw error;
+    return { queued: false };
+  } catch(err){
+    if (isNetworkError(err)){ queueOffline(table, rows); return { queued: true }; }
+    throw err;
+  }
+}
+async function syncOfflineQueue(){
+  if (!navigator.onLine) return;
+  const queue = getOfflineQueue();
+  if (!queue.length) return;
+  const remaining = [];
+  const syncedTables = new Set();
+  for (const item of queue){
+    try {
+      const { error } = await window.sb.from(item.table).insert(item.rows);
+      if (error) throw error;
+      syncedTables.add(item.table);
+    } catch(err){ remaining.push(item); }
+  }
+  saveOfflineQueue(remaining);
+  syncedTables.forEach(t => fetchTable(t));
+}
+function queueItemLabel(item){
+  const r = item.rows && item.rows[0];
+  if (!r) return '<b>'+escapeHtml(item.table)+'</b>';
+  const parts = [];
+  if (r.date) parts.push(escapeHtml(r.date));
+  if (r.observer) parts.push(escapeHtml(r.observer));
+  if (r.species_common) parts.push(escapeHtml(r.species_common));
+  return '<b>'+escapeHtml(TABLE_LABELS[item.table]||item.table)+'</b>'+(parts.length?' — '+parts.join(' · '):'');
+}
+function removeFromQueue(id){
+  if (!confirm('Rimuovere questo elemento dalla coda? Non verrà caricato.')) return;
+  saveOfflineQueue(getOfflineQueue().filter(i => i.id !== id));
+}
+function renderOfflineBanner(){
+  const banner = document.getElementById('offlineBanner');
+  if (!banner) return;
+  const queue = getOfflineQueue();
+  const online = navigator.onLine;
+  if (online && !queue.length){ banner.style.display = 'none'; return; }
+  banner.style.display = '';
+  let html = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+    + '<span><b>'+(online?'🟡 Online':'🔴 Offline — moduli in coda sul dispositivo')+'</b></span>';
+  if (queue.length){
+    html += '<span class="muted">'+queue.length+' invio'+(queue.length===1?'':'i')+' in coda</span>'
+      + '<button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="syncOfflineQueue()" '+(online?'':'disabled')+'>⬆ Sincronizza ora</button>';
+  }
+  html += '</div>';
+  if (queue.length){
+    html += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">';
+    for (const item of queue){
+      const t = new Date(item.queuedAt);
+      const when = isNaN(t) ? '' : t.toLocaleString('it-IT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+      html += '<div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid #e0c060;border-radius:6px;padding:7px 10px;">'
+        + '<span style="flex:1;font-size:13px;">'+queueItemLabel(item)+'</span>'
+        + '<span class="muted" style="font-size:11.5px;white-space:nowrap;">'+when+'</span>'
+        + '<button type="button" onclick="removeFromQueue(\''+escapeHtml(item.id)+'\')" style="background:none;border:1px solid #ccc;border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:#c0392b;">✕</button>'
+        + '</div>';
+    }
+    html += '</div>';
+  }
+  banner.innerHTML = html;
+}
+window.addEventListener('online', () => { renderOfflineBanner(); syncOfflineQueue(); });
+window.addEventListener('offline', renderOfflineBanner);
+
+/* ---------------- GPX import (generic — reused verbatim from the sibling NRDS app's
+   parseGpxWaypoints(), no auto-classification: there's no single status enum that fits all 8
+   modules here, so importing just sets a candidate point, same as tapping the map by hand) ---------------- */
+function parseGpxWaypoints(xmlText){
+  const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Impossibile leggere questo file come GPX/XML.');
+  return [...doc.getElementsByTagName('wpt')].map(el => {
+    const lat = parseFloat(el.getAttribute('lat')), lon = parseFloat(el.getAttribute('lon'));
+    const name = el.getElementsByTagName('name')[0]?.textContent || '';
+    const cmt = el.getElementsByTagName('cmt')[0]?.textContent || '';
+    const desc = el.getElementsByTagName('desc')[0]?.textContent || '';
+    const time = el.getElementsByTagName('time')[0]?.textContent || '';
+    return { lat, lon, name, cmt, desc, time };
+  }).filter(w => isFinite(w.lat) && isFinite(w.lon));
+}
+function onModuleGpxFileSelected(event, key){
+  const file = event.target.files[0];
+  const statusEl = document.getElementById(key + 'GpxStatus');
+  event.target.value = '';
+  if (!file) return;
+  file.text().then(text => {
+    try {
+      const waypoints = parseGpxWaypoints(text);
+      if (!waypoints.length){ statusEl.innerHTML = '<span class="err">Nessun waypoint (&lt;wpt&gt;) trovato in questo file.</span>'; return; }
+      const w = waypoints[0];
+      ensurePickerMap(key);
+      setPickerPoint(key, w.lat, w.lon);
+      pickerMaps[key].map.setView([w.lat, w.lon], 17);
+      const label = [w.name, w.cmt, w.desc].filter(Boolean).join(' — ') || 'waypoint';
+      statusEl.innerHTML = `<span class="ok">✓ Importato "${escapeHtml(label)}"`
+        + (waypoints.length > 1 ? ` (1 di ${waypoints.length} nel file — solo il primo viene usato, gli altri vanno importati uno alla volta)` : '')
+        + ` — tocca comunque la mappa per correggere la posizione.</span>`;
+    } catch(e){
+      statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(e.message)}</span>`;
+    }
+  });
+}
+
+/* ---------------- picker maps: one Leaflet map per form, single click-to-set point ----------------
+   Simpler than the sibling NRDS app's multi-point PFF picker (one point per submission here, not a
+   whole transect) — click replaces the marker; GPX import does the same via setPickerPoint(). */
+const pickerMaps = {};
+const SALENTO_CENTER = [40.05, 18.15]; // rough Lecce/Salento coast center, refined by fitBounds once plots exist
+function ensurePickerMap(key){
+  if (pickerMaps[key]){ pickerMaps[key].map.invalidateSize(); return pickerMaps[key]; }
+  const containerId = key + 'PickerMap';
+  const el = document.getElementById(containerId);
+  if (!el) return null;
+  const map = L.map(containerId, { scrollWheelZoom: true }).setView(SALENTO_CENTER, 12);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri'
+  }).addTo(map);
+  const plotsLayer = L.layerGroup().addTo(map);
+  const entry = { map, marker: null, lat: null, lon: null, plotsLayer };
+  map.on('click', e => setPickerPoint(key, e.latlng.lat, e.latlng.lng));
+  pickerMaps[key] = entry;
+  renderPlotsOnPicker(key);
+  return entry;
+}
+function setPickerPoint(key, lat, lon){
+  const entry = pickerMaps[key];
+  if (!entry) return;
+  if (entry.marker) entry.map.removeLayer(entry.marker);
+  entry.marker = L.circleMarker([lat, lon], { radius: 8, color: '#fff', weight: 2, fillColor: '#0e8a71', fillOpacity: 0.95 }).addTo(entry.map);
+  entry.lat = lat; entry.lon = lon;
+  const readout = document.getElementById(key + 'PendingReadout');
+  if (readout) readout.textContent = `Punto impostato: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+}
+function clearPickerPoint(key){
+  const entry = pickerMaps[key];
+  if (!entry) return;
+  if (entry.marker) entry.map.removeLayer(entry.marker);
+  entry.marker = null; entry.lat = null; entry.lon = null;
+  const readout = document.getElementById(key + 'PendingReadout');
+  if (readout) readout.textContent = 'Nessun punto selezionato.';
+}
+function renderPlotsOnPicker(key){
+  const entry = pickerMaps[key];
+  if (!entry) return;
+  entry.plotsLayer.clearLayers();
+  for (const p of (data.plots || [])){
+    if (!p.geometry) continue;
+    try {
+      if (p.geometry.type === 'Polygon'){
+        const rings = p.geometry.coordinates.map(ring => ring.map(([lon,lat]) => [lat,lon]));
+        L.polygon(rings, { color: '#2e7d32', weight: 1.5, fillOpacity: 0.08 })
+          .bindTooltip(escapeHtml(p.name||'(plot)'), { sticky: true }).addTo(entry.plotsLayer);
+      } else if (p.geometry.type === 'LineString'){
+        const latlngs = p.geometry.coordinates.map(([lon,lat]) => [lat,lon]);
+        L.polyline(latlngs, { color: '#8c564b', weight: 2 })
+          .bindTooltip(escapeHtml(p.name||'(linea)'), { sticky: true }).addTo(entry.plotsLayer);
+      } else if (p.geometry.type === 'Point'){
+        const [lon,lat] = p.geometry.coordinates;
+        L.circleMarker([lat,lon], { radius: 5, color: '#8c564b', weight: 1.5, fillColor: '#fff', fillOpacity: 0.9 })
+          .bindTooltip(escapeHtml(p.name||'(punto)'), { sticky: true }).addTo(entry.plotsLayer);
+      }
+    } catch(e){ /* malformed geometry — skip rather than break the whole picker */ }
+  }
+}
+function refreshAllPickerPlotLayers(){ Object.keys(pickerMaps).forEach(renderPlotsOnPicker); }
+
+/* ---------------- live data: fetch + realtime subscribe, one pair per table ----------------
+   Same convention as the sibling NRDS app: every client's in-memory copy self-heals on any insert
+   from anyone, no reload needed. */
+const TABLES = [
+  'plots','carpobrotus_eradication','carpobrotus_resprout_check',
+  'pancratium_transplant','pancratium_survival_check','pancratium_phenology',
+  'cakile_monitoring','charadrius_point_count','charadrius_nest',
+  'citsci_observation','soil_sample','soil_lab_result','drone_survey',
+  'activity_types','activity_entries',
+];
+const TABLE_LABELS = {
+  plots: 'Plot/zona', carpobrotus_eradication: 'Eradicazione Carpobrotus', carpobrotus_resprout_check: 'Controllo ricacci',
+  pancratium_transplant: 'Trapianto Pancratium', pancratium_survival_check: 'Controllo sopravvivenza',
+  pancratium_phenology: 'Fenologia Pancratium', cakile_monitoring: 'Monitoraggio Cakile',
+  charadrius_point_count: 'Point count Fratino', charadrius_nest: 'Nido Fratino',
+  citsci_observation: 'Osservazione citizen-science', soil_sample: 'Campione suolo', soil_lab_result: 'Risultato laboratorio',
+  drone_survey: 'Volo drone', activity_types: 'Tipo di attività', activity_entries: 'Voce attività',
+};
+let data = {};
+TABLES.forEach(t => data[t] = []);
+let phenoFieldDefs = { id: null, fields: [] };
+
+async function fetchTable(table){
+  try {
+    const { data: rows, error } = await window.sb.from(table).select('*').order('id');
+    if (error) throw new Error(error.message);
+    data[table] = rows || [];
+    _dbSave(table, rows);
+  } catch(e){
+    const cached = _dbLoad(table);
+    if (cached) data[table] = cached.payload;
+  }
+  onDataChanged(table);
+}
+function subscribeTable(table){
+  fetchTable(table);
+  window.sb.channel(table + '_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table }, () => fetchTable(table))
+    .subscribe();
+}
+async function fetchPhenoFieldDefs(){
+  try {
+    const { data: rows, error } = await window.sb.from('pancratium_phenology_field_defs').select('*').order('id').limit(1);
+    if (error) throw new Error(error.message);
+    if (rows && rows.length) phenoFieldDefs = rows[0];
+  } catch(e){ /* keep previous/default */ }
+  renderPhenoExtraFieldInputs();
+  renderPhenoFieldDefRows();
+}
+function subscribePhenoFieldDefs(){
+  fetchPhenoFieldDefs();
+  window.sb.channel('pancratium_phenology_field_defs_changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'pancratium_phenology_field_defs' }, () => fetchPhenoFieldDefs())
+    .subscribe();
+}
+
+function onDataChanged(table){
+  renderStatCards();
+  renderDownloadButtons();
+  refreshAllPickerPlotLayers();
+  refreshPlotDropdowns();
+  refreshParentDropdowns();
+  if (document.getElementById('mapView') && document.getElementById('mapView').style.display !== 'none') renderMap();
+  if (table === 'activity_types'){ renderActivityTypesList(); populateActivityTypeDropdown(); }
+  if (table === 'activity_entries'){ /* nothing extra needed */ }
+}
+
+/* ---------------- home page: stat cards + downloads ---------------- */
+function renderStatCards(){
+  const wrap = document.getElementById('statCards');
+  if (!wrap) return;
+  const items = [
+    ['🌵', data.carpobrotus_eradication.length, 'eradicazioni Carpobrotus'],
+    ['🌱', data.pancratium_transplant.length, 'trapianti Pancratium'],
+    ['🌸', data.pancratium_phenology.length, 'rilievi fenologici'],
+    ['🍃', data.cakile_monitoring.length, 'rilievi Cakile'],
+    ['🐦', data.charadrius_point_count.length, 'point count Fratino'],
+    ['📸', data.citsci_observation.length, 'osservazioni citizen-science'],
+    ['🧪', data.soil_sample.length, 'campioni suolo'],
+    ['📍', data.plots.length, 'plot/zone registrate'],
+  ];
+  wrap.innerHTML = items.map(([icon,n,lbl]) => `<div class="stat"><div class="num">${icon} ${n}</div><div class="lbl">${escapeHtml(lbl)}</div></div>`).join('');
+  document.getElementById('liveDataStatus').textContent = '';
+}
+function renderDownloadButtons(){
+  const wrap = document.getElementById('downloadButtons');
+  if (!wrap) return;
+  const specs = [
+    ['carpobrotus_eradication', ['id','date','observer','organization','plot_id','area_treated_m2','biomass_removed_kg','method','necromass_destination','lat','lon','notes','created_at']],
+    ['carpobrotus_resprout_check', ['id','eradication_id','check_date','observer','organization','resprout_pct','notes','created_at']],
+    ['pancratium_transplant', ['id','date','observer','organization','plot_id','n_bulbs','bulb_source','amf_inoculated','nurse_cakile_present','lat','lon','notes','created_at']],
+    ['pancratium_survival_check', ['id','transplant_id','check_date','observer','organization','n_alive','n_dead','notes','created_at']],
+    ['pancratium_phenology', ['id','date','observer','organization','plot_id','individual_tag','stage','count','height_cm','extra_fields','notes','created_at']],
+    ['cakile_monitoring', ['id','date','observer','organization','plot_id','ndvi','pct_cover','photointercept_notes','seed_collected_kg','notes','created_at']],
+    ['charadrius_point_count', ['id','date','time_start','observer','organization','plot_id','station_id','session_number','lat','lon','duration_min','sky','wind_beaufort','rain','charadrius_seen','charadrius_heard','distance_band','behaviour_code','other_species','notes','created_at']],
+    ['charadrius_nest', ['id','date','observer','organization','plot_id','lat','lon','nest_id','egg_count','chick_count','fledge_status','notes','created_at']],
+    ['citsci_observation', ['id','date','observer','organization','species_common','species_scientific','lat','lon','quantity','photo_urls','notes','created_at']],
+    ['soil_sample', ['id','date','observer','organization','plot_id','sample_id','depth_cm','lat','lon','notes','created_at']],
+    ['soil_lab_result', ['id','sample_id','ph','conductivity','organic_c_pct','total_n_pct','its_batch_id','entered_by','notes','created_at']],
+    ['drone_survey', ['id','date','site','flight_type','pilot','organization','file_reference','notes','created_at']],
+    ['plots', ['id','type','name','site','geometry','area_m2','notes','created_by','created_at']],
+    ['activity_entries', ['id','activity_type_id','activity_type_name','date','observer','organization','site','zone','number_of_person','comment','field_values','created_at']],
+  ];
+  wrap.innerHTML = specs.map(([table, fields]) =>
+    `<button class="secondary" onclick='downloadCSV("${table}.csv", data["${table}"].map(r=>({...r, ${
+      fields.filter(f => ['geometry','extra_fields','other_species','photo_urls','field_values'].includes(f)).map(f=>`${f}:JSON.stringify(r.${f})`).join(',')
+    }})), ${JSON.stringify(fields)})'>⬇ ${TABLE_LABELS[table]||table}</button>`
+  ).join('');
+}
+
+/* ---------------- Add Elements: draw a plot/zone/point/line, saved to `plots` ----------------
+   Reuses the sibling NRDS app's new_elements GeoJSON-in-jsonb pattern, pointed at `plots` instead. */
+function toggleAddElementsMenu(){
+  const menu = document.getElementById('addElementsMenu');
+  const open = menu.style.display !== 'none';
+  if (open){ menu.style.display = 'none'; return; }
+  menu.innerHTML = `
+    <button type="button" class="secondary" onclick="alert('Per disegnare una nuova zona/plot: apri 2. Mappa, poi usa i pulsanti di disegno lì (funzione base v1 — disegno diretto in arrivo).')">Nuova zona (poligono)</button>
+    <button type="button" class="secondary" onclick="promptAddPoint()">Nuovo punto</button>
+    <button type="button" class="secondary" onclick="document.getElementById('addElementsMenu').style.display='none'">Chiudi</button>`;
+  menu.style.display = '';
+}
+async function promptAddPoint(){
+  const name = prompt('Nome del punto (es. "Plot 3"):');
+  if (!name) return;
+  const lat = parseFloat(prompt('Latitudine (es. 40.0512):'));
+  const lon = parseFloat(prompt('Longitudine (es. 18.1734):'));
+  if (!isFinite(lat) || !isFinite(lon)){ alert('Coordinate non valide.'); return; }
+  const row = { type: 'point', name, site: 'Salento LE', geometry: { type: 'Point', coordinates: [lon, lat] }, created_by: 'Add Elements' };
+  const result = await insertOrQueue('plots', [row]);
+  document.getElementById('addElementsMenu').style.display = 'none';
+  if (!result.queued) fetchTable('plots');
+}
+
+/* ---------------- dropdowns: plot pickers + parent-record pickers, refreshed on every data change ---------------- */
+function refreshPlotDropdowns(){
+  const opts = '<option value="">Nessuno</option>' + data.plots.map(p => `<option value="${p.id}">${escapeHtml(p.name||('Plot #'+p.id))} (${escapeHtml(p.site||'')})</option>`).join('');
+  ['carpoPlot','transplantPlot','phenoPlot','cakilePlot','charPlot','soilPlot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { const v = el.value; el.innerHTML = opts; if ([...el.options].some(o=>o.value===v)) el.value = v; }
+  });
+}
+function refreshParentDropdowns(){
+  const carpoSel = document.getElementById('carpoCheckParent');
+  if (carpoSel){
+    const v = carpoSel.value;
+    carpoSel.innerHTML = '<option value="">Scegli…</option>' + data.carpobrotus_eradication.map(r =>
+      `<option value="${r.id}">#${r.id} — ${escapeHtml(r.date||'')} (${escapeHtml(r.observer||'')})</option>`).join('');
+    if ([...carpoSel.options].some(o=>o.value===v)) carpoSel.value = v;
+  }
+  const survSel = document.getElementById('survivalCheckParent');
+  if (survSel){
+    const v = survSel.value;
+    survSel.innerHTML = '<option value="">Scegli…</option>' + data.pancratium_transplant.map(r =>
+      `<option value="${r.id}">#${r.id} — ${escapeHtml(r.date||'')} (${r.n_bulbs||'?'} bulbi)</option>`).join('');
+    if ([...survSel.options].some(o=>o.value===v)) survSel.value = v;
+  }
+  const labSel = document.getElementById('labResultSample');
+  if (labSel){
+    const v = labSel.value;
+    labSel.innerHTML = '<option value="">Scegli…</option>' + data.soil_sample.map(r =>
+      `<option value="${r.id}">#${r.id} — ${escapeHtml(r.sample_id||'')} (${escapeHtml(r.date||'')})</option>`).join('');
+    if ([...labSel.options].some(o=>o.value===v)) labSel.value = v;
+  }
+}
+
+/* ---------------- view routing (same HASH_VIEW_FNS pattern as the sibling NRDS app) ---------------- */
+const ALL_VIEW_IDS = ['submitView','mapView','carpoFormView','transplantFormView','phenoFormView','cakileFormView','charadriusFormView','citsciFormView','soilFormView','droneFormView','atFormView','aeFormView'];
+function hideAllViews(){ ALL_VIEW_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); }
+function showHomeView(){
+  hideAllViews();
+  document.getElementById('homeView').style.display = '';
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+  window.scrollTo(0,0);
+}
+function showSubmitView(){
+  document.getElementById('homeView').style.display = 'none';
+  hideAllViews();
+  document.getElementById('submitView').style.display = '';
+  if (location.hash !== '#submit') location.hash = 'submit';
+  window.scrollTo(0,0);
+  renderOfflineBanner();
+}
+function showMapView(){
+  document.getElementById('homeView').style.display = 'none';
+  hideAllViews();
+  document.getElementById('mapView').style.display = '';
+  if (location.hash !== '#map') location.hash = 'map';
+  window.scrollTo(0,0);
+  ensureMap(); renderMap();
+}
+function makeFormViewShower(viewId, pickerKey, hash){
+  return function(){
+    document.getElementById('homeView').style.display = 'none';
+    hideAllViews();
+    document.getElementById(viewId).style.display = '';
+    if (location.hash !== hash) location.hash = hash.slice(1);
+    window.scrollTo(0,0);
+    if (pickerKey){ const e = ensurePickerMap(pickerKey); if (e) e.map.invalidateSize(); }
+    if (pickerKey === 'char'){ const e2 = ensurePickerMap('nest'); if (e2) e2.map.invalidateSize(); }
+  };
+}
+const showCarpoView = makeFormViewShower('carpoFormView', 'carpo', '#form-carpo');
+const showTransplantView = makeFormViewShower('transplantFormView', 'transplant', '#form-transplant');
+const showPhenoView = makeFormViewShower('phenoFormView', 'pheno', '#form-pheno');
+const showCakileView = makeFormViewShower('cakileFormView', 'cakile', '#form-cakile');
+const showCharadriusView = makeFormViewShower('charadriusFormView', 'char', '#form-char');
+const showCitsciView = makeFormViewShower('citsciFormView', 'citsci', '#form-citsci');
+const showSoilView = makeFormViewShower('soilFormView', 'soil', '#form-soil');
+const showDroneView = makeFormViewShower('droneFormView', null, '#form-drone');
+const showAtView = makeFormViewShower('atFormView', null, '#form-at');
+const showAeEntryView = makeFormViewShower('aeFormView', null, '#form-ae');
+
+const HASH_VIEW_FNS = {
+  '#submit': showSubmitView, '#map': showMapView,
+  '#form-carpo': showCarpoView, '#form-transplant': showTransplantView, '#form-pheno': showPhenoView,
+  '#form-cakile': showCakileView, '#form-char': showCharadriusView, '#form-citsci': showCitsciView,
+  '#form-soil': showSoilView, '#form-drone': showDroneView, '#form-at': showAtView, '#form-ae': showAeEntryView,
+};
+if (HASH_VIEW_FNS[location.hash]) HASH_VIEW_FNS[location.hash]();
+window.addEventListener('hashchange', () => { const fn = HASH_VIEW_FNS[location.hash]; if (fn) fn(); else showHomeView(); });
+
+/* ---------------- map view: plots + one layer per module ---------------- */
+let leafletMap = null, unitLayerGroup = null, mapLayers = new Set();
+function ensureMap(){
+  if (leafletMap) return;
+  leafletMap = L.map('mapContainer', { scrollWheelZoom: true }).setView(SALENTO_CENTER, 12);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19, attribution: 'Tiles &copy; Esri'
+  }).addTo(leafletMap);
+  unitLayerGroup = L.layerGroup().addTo(leafletMap);
+  window.pointLayerGroups = {};
+  ['carpo','transplant','pheno','cakile','charadrius','citsci','soil'].forEach(k => window.pointLayerGroups[k] = L.layerGroup().addTo(leafletMap));
+}
+function toggleMapLayersDropdown(){
+  const panel = document.getElementById('mapLayersPanel');
+  panel.style.display = panel.style.display === 'none' ? '' : 'none';
+}
+function toggleMapLayer(key, checked){
+  if (checked) mapLayers.add(key); else mapLayers.delete(key);
+  document.getElementById('mapLayersCount').textContent = `(${mapLayers.size})`;
+  renderMap();
+}
+function renderMap(){
+  if (!leafletMap) return;
+  unitLayerGroup.clearLayers();
+  const boundsLatLngs = [];
+  for (const p of data.plots){
+    if (!p.geometry) continue;
+    try {
+      if (p.geometry.type === 'Polygon'){
+        const rings = p.geometry.coordinates.map(ring => ring.map(([lon,lat]) => [lat,lon]));
+        L.polygon(rings, { color: '#2e7d32', weight: 1.5, fillOpacity: 0.08 })
+          .bindTooltip(`<b>${escapeHtml(p.name||'')}</b> (${escapeHtml(p.type||'')})`, { sticky: true }).addTo(unitLayerGroup);
+        rings.forEach(r => r.forEach(ll => boundsLatLngs.push(ll)));
+      } else if (p.geometry.type === 'LineString'){
+        const latlngs = p.geometry.coordinates.map(([lon,lat]) => [lat,lon]);
+        L.polyline(latlngs, { color: '#8c564b', weight: 2 }).bindTooltip(escapeHtml(p.name||''), { sticky: true }).addTo(unitLayerGroup);
+        latlngs.forEach(ll => boundsLatLngs.push(ll));
+      } else if (p.geometry.type === 'Point'){
+        const [lon,lat] = p.geometry.coordinates;
+        L.circleMarker([lat,lon], { radius: 6, color: '#8c564b', weight: 1.5, fillColor: '#fff', fillOpacity: 0.9 })
+          .bindTooltip(escapeHtml(p.name||''), { sticky: true }).addTo(unitLayerGroup);
+        boundsLatLngs.push([lat,lon]);
+      }
+    } catch(e){}
+  }
+  const layerSpecs = [
+    ['carpo', data.carpobrotus_eradication, '#c0392b', r => `<b>Eradicazione Carpobrotus</b><br>${escapeHtml(r.date||'')} — ${escapeHtml(r.observer||'')}<br>Area: ${r.area_treated_m2||'—'} m² · Biomassa: ${r.biomass_removed_kg||'—'} kg`],
+    ['transplant', data.pancratium_transplant, '#2e7d32', r => `<b>Trapianto Pancratium</b><br>${escapeHtml(r.date||'')} — ${r.n_bulbs||'?'} bulbi`],
+    ['pheno', data.pancratium_phenology, '#e377c2', r => `<b>Fenologia</b><br>${escapeHtml(r.date||'')} — ${escapeHtml(r.stage||'')}`],
+    ['cakile', data.cakile_monitoring, '#f5a623', r => `<b>Cakile</b><br>${escapeHtml(r.date||'')} — copertura ${r.pct_cover||'—'}%`],
+    ['charadrius', data.charadrius_point_count, '#1f77b4', r => `<b>Fratino point count</b><br>${escapeHtml(r.date||'')} — visti ${r.charadrius_seen||0}`],
+    ['citsci', data.citsci_observation, '#8b5cf6', r => `<b>${escapeHtml(r.species_common||'Osservazione')}</b><br>${escapeHtml(r.date||'')} — ${escapeHtml(r.observer||'')}`],
+    ['soil', data.soil_sample, '#7f7f7f', r => `<b>Campione suolo</b><br>${escapeHtml(r.date||'')} — ${escapeHtml(r.sample_id||'')}`],
+  ];
+  for (const [key, rows, color, popupFn] of layerSpecs){
+    window.pointLayerGroups[key].clearLayers();
+    if (!mapLayers.has(key)) continue;
+    for (const r of rows){
+      if (!isFinite(r.lat) || !isFinite(r.lon)) continue;
+      const html = popupFn(r);
+      L.circleMarker([r.lat, r.lon], { radius: 7, color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 0.9 })
+        .bindTooltip(html, { sticky: true, direction: 'top' }).bindPopup(html)
+        .addTo(window.pointLayerGroups[key]);
+      boundsLatLngs.push([r.lat, r.lon]);
+    }
+  }
+  let legend = Object.keys(TABLE_LABELS).length ? '' : '';
+  legend = layerSpecs.filter(([k]) => mapLayers.has(k)).map(([k,,color]) =>
+    `<span class="legend-item" style="display:inline-flex;align-items:center;gap:5px;margin-right:16px;font-size:12.5px;"><span class="swatch" style="background:${color}"></span>${escapeHtml(TABLE_LABELS[k==='charadrius'?'charadrius_point_count':k==='soil'?'soil_sample':k==='carpo'?'carpobrotus_eradication':k==='transplant'?'pancratium_transplant':k==='pheno'?'pancratium_phenology':k==='cakile'?'cakile_monitoring':'citsci_observation'])}</span>`
+  ).join('');
+  document.getElementById('mapLegend').innerHTML = legend;
+  if (boundsLatLngs.length) leafletMap.fitBounds(boundsLatLngs, { padding: [20,20] });
+}
+
+/* ---------------- module submit handlers ---------------- */
+const ORG_FIELD_OK = v => v; // placeholder for future validation hook
+
+async function submitCarpoForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('carpoSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['carpo'];
+    const row = {
+      date: document.getElementById('carpoDate').value,
+      observer: document.getElementById('carpoObserver').value,
+      organization: document.getElementById('carpoOrg').value,
+      plot_id: document.getElementById('carpoPlot').value || null,
+      area_treated_m2: parseFloat(document.getElementById('carpoArea').value) || null,
+      biomass_removed_kg: parseFloat(document.getElementById('carpoBiomass').value) || null,
+      method: document.getElementById('carpoMethod').value || null,
+      necromass_destination: document.getElementById('carpoDisposal').value || null,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('carpoNotes').value || null,
+    };
+    const result = await insertOrQueue('carpobrotus_eradication', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline — verrà caricato automaticamente.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('carpoForm').reset();
+    clearPickerPoint('carpo');
+    if (!result.queued) fetchTable('carpobrotus_eradication');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+async function submitCarpoCheckForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('carpoCheckSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const row = {
+      eradication_id: document.getElementById('carpoCheckParent').value,
+      check_date: document.getElementById('carpoCheckDate').value,
+      observer: document.getElementById('carpoCheckObserver').value,
+      organization: document.getElementById('carpoCheckOrg').value,
+      resprout_pct: parseFloat(document.getElementById('carpoCheckPct').value) || null,
+      notes: document.getElementById('carpoCheckNotes').value || null,
+    };
+    if (!row.eradication_id) throw new Error('Scegli l\'evento di eradicazione originale.');
+    const result = await insertOrQueue('carpobrotus_resprout_check', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('carpoCheckForm').reset();
+    if (!result.queued) fetchTable('carpobrotus_resprout_check');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+async function submitTransplantForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('transplantSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['transplant'];
+    const row = {
+      date: document.getElementById('transplantDate').value,
+      observer: document.getElementById('transplantObserver').value,
+      organization: document.getElementById('transplantOrg').value,
+      plot_id: document.getElementById('transplantPlot').value || null,
+      n_bulbs: parseInt(document.getElementById('transplantNBulbs').value) || null,
+      bulb_source: document.getElementById('transplantSource').value || null,
+      amf_inoculated: document.getElementById('transplantAmf').checked,
+      nurse_cakile_present: document.getElementById('transplantNurse').checked,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('transplantNotes').value || null,
+    };
+    const result = await insertOrQueue('pancratium_transplant', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('transplantForm').reset();
+    clearPickerPoint('transplant');
+    if (!result.queued) fetchTable('pancratium_transplant');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+async function submitSurvivalCheckForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('survivalCheckSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const row = {
+      transplant_id: document.getElementById('survivalCheckParent').value,
+      check_date: document.getElementById('survivalCheckDate').value,
+      observer: document.getElementById('survivalCheckObserver').value,
+      organization: document.getElementById('survivalCheckOrg').value,
+      n_alive: parseInt(document.getElementById('survivalCheckAlive').value) || null,
+      n_dead: parseInt(document.getElementById('survivalCheckDead').value) || null,
+      notes: document.getElementById('survivalCheckNotes').value || null,
+    };
+    if (!row.transplant_id) throw new Error('Scegli il trapianto originale.');
+    const result = await insertOrQueue('pancratium_survival_check', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('survivalCheckForm').reset();
+    if (!result.queued) fetchTable('pancratium_survival_check');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+/* Pancratium phenology: settings-driven extra fields (same field-row shape as Activity Types) */
+function renderPhenoExtraFieldInputs(){
+  const wrap = document.getElementById('phenoExtraFields');
+  if (!wrap) return;
+  const fields = phenoFieldDefs.fields || [];
+  wrap.innerHTML = fields.map(f => {
+    if (f.type === 'choice') return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <select class="pheno-extra-input" data-label="${escapeHtml(f.label)}" data-type="${f.type}">${(f.options||[]).map(o=>`<option>${escapeHtml(o)}</option>`).join('')}</select></label>`;
+    if (f.type === 'yesno') return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <select class="pheno-extra-input" data-label="${escapeHtml(f.label)}" data-type="${f.type}"><option>Sì</option><option>No</option></select></label>`;
+    return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <input type="${f.type==='number'?'number':f.type==='date'?'date':'text'}" class="pheno-extra-input" data-label="${escapeHtml(f.label)}" data-type="${f.type}" style="width:200px;"></label>`;
+  }).join('');
+}
+function renderPhenoFieldDefRows(){
+  const wrap = document.getElementById('phenoFieldDefRows');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  phenoFieldDefRowCount = 0;
+  (phenoFieldDefs.fields||[]).forEach(f => addPhenoFieldDefRow(f));
+}
+let phenoFieldDefRowCount = 0;
+function addPhenoFieldDefRow(prefill){
+  const wrap = document.getElementById('phenoFieldDefRows');
+  const idx = phenoFieldDefRowCount++;
+  const div = document.createElement('div');
+  div.className = 'row'; div.style.marginBottom = '6px'; div.id = `phenoFieldDefRow${idx}`;
+  div.innerHTML = `
+    <input type="text" class="pfd-label" placeholder="Nome campo" style="width:160px;" value="${escapeHtml(prefill?.label||'')}">
+    <select class="pfd-type" onchange="this.parentElement.querySelector('.pfd-options').style.display=this.value==='choice'?'':'none'">
+      <option value="text">Testo</option><option value="number">Numero</option><option value="date">Data</option>
+      <option value="yesno">Sì/No</option><option value="choice">Scelta (menu)</option>
+    </select>
+    <input type="text" class="pfd-options" placeholder="Opzioni, separate da virgola" style="width:180px;display:none;" value="${escapeHtml((prefill?.options||[]).join(', '))}">
+    <label class="muted"><input type="checkbox" class="pfd-required" ${prefill?.required?'checked':''}> Obbligatorio</label>
+    <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('phenoFieldDefRow${idx}').remove()">×</button>`;
+  wrap.appendChild(div);
+  if (prefill?.type){ div.querySelector('.pfd-type').value = prefill.type; if (prefill.type==='choice') div.querySelector('.pfd-options').style.display=''; }
+}
+async function savePhenoFieldDefs(){
+  const statusEl = document.getElementById('phenoFieldDefsStatus');
+  statusEl.textContent = 'Salvataggio…';
+  const fields = [...document.querySelectorAll('#phenoFieldDefRows > div')].map((row,i) => {
+    const label = row.querySelector('.pfd-label').value.trim();
+    if (!label) return null;
+    const type = row.querySelector('.pfd-type').value;
+    const required = row.querySelector('.pfd-required').checked;
+    const optionsRaw = row.querySelector('.pfd-options').value.trim();
+    const options = type === 'choice' ? optionsRaw.split(',').map(s=>s.trim()).filter(Boolean) : null;
+    return { id: `field_${i}`, label, type, options, required };
+  }).filter(Boolean);
+  try {
+    const { error } = phenoFieldDefs.id
+      ? await window.sb.from('pancratium_phenology_field_defs').update({ fields }).eq('id', phenoFieldDefs.id)
+      : await window.sb.from('pancratium_phenology_field_defs').insert({ fields });
+    if (error) throw new Error(error.message);
+    statusEl.innerHTML = '<span class="ok">✓ Salvato.</span>';
+    fetchPhenoFieldDefs();
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+async function submitPhenoForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('phenoSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['pheno'];
+    const extra_fields = [...document.querySelectorAll('.pheno-extra-input')].map(el => ({ label: el.dataset.label, type: el.dataset.type, value: el.value }));
+    const row = {
+      date: document.getElementById('phenoDate').value,
+      observer: document.getElementById('phenoObserver').value,
+      organization: document.getElementById('phenoOrg').value,
+      plot_id: document.getElementById('phenoPlot').value || null,
+      individual_tag: document.getElementById('phenoTag').value || null,
+      stage: document.getElementById('phenoStage').value || null,
+      count: parseInt(document.getElementById('phenoCount').value) || null,
+      height_cm: parseFloat(document.getElementById('phenoHeight').value) || null,
+      extra_fields,
+      notes: document.getElementById('phenoNotes').value || null,
+    };
+    if (entry?.lat != null) { row.lat = entry.lat; row.lon = entry.lon; }
+    const result = await insertOrQueue('pancratium_phenology', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('phenoForm').reset();
+    clearPickerPoint('pheno');
+    renderPhenoExtraFieldInputs();
+    if (!result.queued) fetchTable('pancratium_phenology');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+async function submitCakileForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('cakileSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['cakile'];
+    const row = {
+      date: document.getElementById('cakileDate').value,
+      observer: document.getElementById('cakileObserver').value,
+      organization: document.getElementById('cakileOrg').value,
+      plot_id: document.getElementById('cakilePlot').value || null,
+      pct_cover: parseFloat(document.getElementById('cakileCover').value) || null,
+      ndvi: parseFloat(document.getElementById('cakileNdvi').value) || null,
+      seed_collected_kg: parseFloat(document.getElementById('cakileSeed').value) || null,
+      photointercept_notes: document.getElementById('cakilePhotointercept').value || null,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('cakileNotes').value || null,
+    };
+    const result = await insertOrQueue('cakile_monitoring', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('cakileForm').reset();
+    clearPickerPoint('cakile');
+    if (!result.queued) fetchTable('cakile_monitoring');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+async function submitCharadriusForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('charSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['char'];
+    const otherRaw = document.getElementById('charOtherSpecies').value.trim();
+    const other_species = otherRaw ? otherRaw.split(',').map(s => ({ species: s.trim(), count: null, behaviour: null })) : [];
+    const row = {
+      date: document.getElementById('charDate').value,
+      time_start: document.getElementById('charTimeStart').value || null,
+      observer: document.getElementById('charObserver').value,
+      organization: document.getElementById('charOrg').value,
+      plot_id: document.getElementById('charPlot').value || null,
+      station_id: document.getElementById('charStation').value || null,
+      session_number: parseInt(document.getElementById('charSession').value) || null,
+      duration_min: parseInt(document.getElementById('charDuration').value) || 10,
+      sky: document.getElementById('charSky').value || null,
+      wind_beaufort: parseInt(document.getElementById('charWind').value) || null,
+      rain: document.getElementById('charRain').value || null,
+      charadrius_seen: parseInt(document.getElementById('charSeen').value) || null,
+      charadrius_heard: parseInt(document.getElementById('charHeard').value) || null,
+      distance_band: document.getElementById('charDistBand').value || null,
+      behaviour_code: document.getElementById('charBehaviour').value || null,
+      other_species,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('charNotes').value || null,
+    };
+    const result = await insertOrQueue('charadrius_point_count', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('charadriusForm').reset();
+    clearPickerPoint('char');
+    if (!result.queued) fetchTable('charadrius_point_count');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+async function submitNestForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('nestSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['nest'];
+    const row = {
+      date: document.getElementById('nestDate').value,
+      observer: document.getElementById('nestObserver').value,
+      organization: document.getElementById('nestOrg').value,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      nest_id: document.getElementById('nestId').value || null,
+      egg_count: parseInt(document.getElementById('nestEggs').value) || null,
+      chick_count: parseInt(document.getElementById('nestChicks').value) || null,
+      fledge_status: document.getElementById('nestFledge').value || null,
+      notes: document.getElementById('nestNotes').value || null,
+    };
+    const result = await insertOrQueue('charadrius_nest', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('nestForm').reset();
+    clearPickerPoint('nest');
+    if (!result.queued) fetchTable('charadrius_nest');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+/* citizen-science photos — reuses the sibling NRDS app's uploadBirdObsPhotos() Storage pattern,
+   pointed at the "field-photos" bucket created in the SQL schema */
+let citsciSelectedPhotoFiles = [];
+function onCitsciPhotoSelected(event){
+  citsciSelectedPhotoFiles = citsciSelectedPhotoFiles.concat([...event.target.files]);
+  event.target.value = '';
+  renderCitsciPhotoPreview();
+}
+function removeCitsciPhotoFile(i){ citsciSelectedPhotoFiles.splice(i,1); renderCitsciPhotoPreview(); }
+function renderCitsciPhotoPreview(){
+  document.getElementById('citsciPhotoPreview').innerHTML = citsciSelectedPhotoFiles.map((f,i) => `
+    <div class="photo-preview"><img src="${URL.createObjectURL(f)}" alt="${escapeHtml(f.name)}">
+    <button type="button" class="x" onclick="removeCitsciPhotoFile(${i})">×</button></div>`).join('');
+}
+async function uploadCitsciPhotos(){
+  if (!citsciSelectedPhotoFiles.length) return { urls: [], failed: false };
+  if (!navigator.onLine) return { urls: [], failed: true };
+  const urls = [];
+  try {
+    for (const file of citsciSelectedPhotoFiles){
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`.replace(/\s+/g,'_');
+      const { error } = await window.sb.storage.from('field-photos').upload(path, file);
+      if (error) throw error;
+      const { data: pub } = window.sb.storage.from('field-photos').getPublicUrl(path);
+      urls.push(pub.publicUrl);
+    }
+    return { urls, failed: false };
+  } catch(e){ return { urls, failed: true }; }
+}
+async function submitCitsciForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('citsciSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['citsci'];
+    const photos = await uploadCitsciPhotos();
+    const row = {
+      date: document.getElementById('citsciDate').value,
+      observer: document.getElementById('citsciObserver').value,
+      organization: document.getElementById('citsciOrg').value,
+      species_common: document.getElementById('citsciCommon').value || null,
+      species_scientific: document.getElementById('citsciSci').value || null,
+      quantity: parseInt(document.getElementById('citsciQty').value) || null,
+      photo_urls: photos.urls,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('citsciNotes').value || null,
+    };
+    const result = await insertOrQueue('citsci_observation', [row]);
+    statusEl.innerHTML = (result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>')
+      + (photos.failed ? ' <span class="warn">(foto non caricate — nessuna connessione)</span>' : '');
+    document.getElementById('citsciForm').reset();
+    clearPickerPoint('citsci');
+    citsciSelectedPhotoFiles = []; renderCitsciPhotoPreview();
+    if (!result.queued) fetchTable('citsci_observation');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+async function submitSoilForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('soilSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const entry = pickerMaps['soil'];
+    const row = {
+      date: document.getElementById('soilDate').value,
+      observer: document.getElementById('soilObserver').value,
+      organization: document.getElementById('soilOrg').value,
+      plot_id: document.getElementById('soilPlot').value || null,
+      sample_id: document.getElementById('soilSampleId').value || null,
+      depth_cm: parseFloat(document.getElementById('soilDepth').value) || null,
+      lat: entry?.lat ?? null, lon: entry?.lon ?? null,
+      notes: document.getElementById('soilNotes').value || null,
+    };
+    const result = await insertOrQueue('soil_sample', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('soilForm').reset();
+    clearPickerPoint('soil');
+    if (!result.queued) fetchTable('soil_sample');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+async function submitLabResultForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('labResultSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const row = {
+      sample_id: document.getElementById('labResultSample').value,
+      entered_by: document.getElementById('labResultEnteredBy').value,
+      ph: parseFloat(document.getElementById('labPh').value) || null,
+      conductivity: parseFloat(document.getElementById('labConductivity').value) || null,
+      organic_c_pct: parseFloat(document.getElementById('labOrganicC').value) || null,
+      total_n_pct: parseFloat(document.getElementById('labTotalN').value) || null,
+      its_batch_id: document.getElementById('labItsBatch').value || null,
+      notes: document.getElementById('labResultNotes').value || null,
+    };
+    if (!row.sample_id) throw new Error('Scegli il campione originale.');
+    const result = await insertOrQueue('soil_lab_result', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('labResultForm').reset();
+    if (!result.queued) fetchTable('soil_lab_result');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+async function submitDroneForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('droneSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const row = {
+      date: document.getElementById('droneDate').value,
+      site: document.getElementById('droneSite').value || null,
+      pilot: document.getElementById('dronePilot').value,
+      organization: document.getElementById('droneOrg').value,
+      flight_type: document.getElementById('droneFlightType').value || null,
+      file_reference: document.getElementById('droneFileRef').value || null,
+      notes: document.getElementById('droneNotes').value || null,
+    };
+    const result = await insertOrQueue('drone_survey', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('droneForm').reset();
+    if (!result.queued) fetchTable('drone_survey');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+/* ---------------- Activity Types / Log an Activity (reused verbatim from the sibling NRDS app) ---------------- */
+function renderActivityTypesList(){
+  const wrap = document.getElementById('atListWrap');
+  if (!wrap) return;
+  if (!data.activity_types.length){ wrap.innerHTML = '<div class="muted">Nessun tipo di attività personalizzato ancora — creane uno qui sotto.</div>'; return; }
+  wrap.innerHTML = data.activity_types.map(t => {
+    const n = (t.fields||[]).length;
+    return `<div class="row" style="align-items:flex-start;margin-bottom:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fafcf9;">
+      <span class="swatch" style="background:${escapeHtml(t.color||'#888')};margin-top:3px;"></span>
+      <div style="flex:1;min-width:180px;"><b>${escapeHtml(t.name)}</b> <span class="badge">${n} camp${n===1?'o':'i'} personalizzat${n===1?'o':'i'}</span>
+      ${t.description ? `<div class="muted" style="margin-top:2px;">${escapeHtml(t.description)}</div>` : ''}</div></div>`;
+  }).join('');
+}
+function populateActivityTypeDropdown(){
+  const sel = document.getElementById('aeType');
+  const form = document.getElementById('aeForm');
+  const hint = document.getElementById('aeNoTypesHint');
+  if (!sel || !form || !hint) return;
+  if (!data.activity_types.length){ form.style.display = 'none'; hint.style.display = ''; return; }
+  hint.style.display = 'none'; form.style.display = '';
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Scegli…</option>' + data.activity_types.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+  if (current && data.activity_types.some(t => String(t.id) === current)) sel.value = current;
+}
+function toggleActivityTypeBuilder(){
+  const form = document.getElementById('atForm');
+  const open = form.style.display !== 'none';
+  form.style.display = open ? 'none' : '';
+  document.getElementById('atToggleBtn').style.display = open ? '' : 'none';
+  if (!open && !document.getElementById('atFieldRows').children.length) addAtFieldRow();
+}
+let atFieldRowCount = 0;
+function addAtFieldRow(prefill){
+  const wrap = document.getElementById('atFieldRows');
+  const idx = atFieldRowCount++;
+  const div = document.createElement('div');
+  div.className = 'row'; div.style.marginBottom = '6px'; div.id = `atFieldRow${idx}`;
+  div.innerHTML = `
+    <input type="text" class="at-field-label" placeholder="Nome campo" style="width:180px;" value="${escapeHtml(prefill?.label||'')}">
+    <select class="at-field-type" onchange="this.parentElement.querySelector('.at-field-options').style.display=this.value==='choice'?'':'none'">
+      <option value="text">Testo</option><option value="number">Numero</option><option value="date">Data</option>
+      <option value="yesno">Sì/No</option><option value="choice">Scelta (menu)</option>
+    </select>
+    <input type="text" class="at-field-options" placeholder="Opzioni, separate da virgola" style="width:200px;display:none;" value="${escapeHtml((prefill?.options||[]).join(', '))}">
+    <label class="muted"><input type="checkbox" class="at-field-required" ${prefill?.required?'checked':''}> Obbligatorio</label>
+    <button type="button" class="secondary" style="padding:4px 9px;font-size:12px;" onclick="document.getElementById('atFieldRow${idx}').remove()">×</button>`;
+  wrap.appendChild(div);
+  if (prefill?.type){ div.querySelector('.at-field-type').value = prefill.type; if (prefill.type==='choice') div.querySelector('.at-field-options').style.display=''; }
+}
+async function submitActivityTypeForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('atSubmitStatus');
+  statusEl.innerHTML = 'Salvataggio…';
+  try {
+    const fields = [...document.querySelectorAll('#atFieldRows > div')].map((row,i) => {
+      const label = row.querySelector('.at-field-label').value.trim();
+      if (!label) return null;
+      const type = row.querySelector('.at-field-type').value;
+      const required = row.querySelector('.at-field-required').checked;
+      const optionsRaw = row.querySelector('.at-field-options').value.trim();
+      const options = type === 'choice' ? optionsRaw.split(',').map(s=>s.trim()).filter(Boolean) : null;
+      return { id: `field_${i}`, label, type, options, required };
+    }).filter(Boolean);
+    const newType = {
+      name: document.getElementById('atName').value.trim(),
+      description: document.getElementById('atDescription').value.trim() || null,
+      color: document.getElementById('atColor').value,
+      fields,
+    };
+    if (!newType.name) throw new Error('Il nome è obbligatorio.');
+    const { error } = await window.sb.from('activity_types').insert(newType);
+    if (error) throw new Error(error.message);
+    statusEl.innerHTML = '<span class="ok">✓ Tipo di attività salvato.</span>';
+    document.getElementById('atForm').reset();
+    document.getElementById('atFieldRows').innerHTML = ''; atFieldRowCount = 0;
+    toggleActivityTypeBuilder();
+    fetchTable('activity_types');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+function renderAeCustomFields(){
+  const typeId = document.getElementById('aeType').value;
+  const wrap = document.getElementById('aeCustomFields');
+  const type = data.activity_types.find(t => String(t.id) === typeId);
+  if (!type){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = (type.fields||[]).map(f => {
+    const req = f.required ? 'required' : '';
+    if (f.type === 'choice') return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <select class="ae-custom-input" data-id="${f.id}" data-label="${escapeHtml(f.label)}" data-type="${f.type}" ${req}><option value="">Scegli…</option>${(f.options||[]).map(o=>`<option>${escapeHtml(o)}</option>`).join('')}</select></label>`;
+    if (f.type === 'yesno') return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <select class="ae-custom-input" data-id="${f.id}" data-label="${escapeHtml(f.label)}" data-type="${f.type}" ${req}><option value="">Scegli…</option><option>Sì</option><option>No</option></select></label>`;
+    return `<label class="muted" style="display:block;margin-bottom:6px;">${escapeHtml(f.label)}: <input type="${f.type==='number'?'number':f.type==='date'?'date':'text'}" class="ae-custom-input" data-id="${f.id}" data-label="${escapeHtml(f.label)}" data-type="${f.type}" ${req} style="width:220px;"></label>`;
+  }).join('');
+}
+async function submitActivityEntryForm(evt){
+  evt.preventDefault();
+  const statusEl = document.getElementById('aeSubmitStatus');
+  statusEl.innerHTML = 'Invio…';
+  try {
+    const typeId = document.getElementById('aeType').value;
+    const type = data.activity_types.find(t => String(t.id) === typeId);
+    const field_values = [...document.querySelectorAll('.ae-custom-input')].map(el => ({ id: el.dataset.id, label: el.dataset.label, type: el.dataset.type, value: el.value }));
+    const row = {
+      activity_type_id: typeId, activity_type_name: type?.name || null,
+      date: document.getElementById('aeDate').value,
+      observer: document.getElementById('aeObserver').value,
+      organization: document.getElementById('aeOrg').value,
+      site: document.getElementById('aeSite').value || null,
+      zone: document.getElementById('aeZone').value || null,
+      number_of_person: parseInt(document.getElementById('aeNumberOfPerson').value) || null,
+      comment: document.getElementById('aeComment').value || null,
+      field_values,
+    };
+    const result = await insertOrQueue('activity_entries', [row]);
+    statusEl.innerHTML = result.queued ? '<span class="ok">✓ Salvato offline.</span>' : '<span class="ok">✓ Inviato.</span>';
+    document.getElementById('aeForm').reset();
+    document.getElementById('aeCustomFields').innerHTML = '';
+    if (!result.queued) fetchTable('activity_entries');
+  } catch(err){ statusEl.innerHTML = `<span class="err">Errore: ${escapeHtml(err.message)}</span>`; }
+}
+
+function closePhotoLightbox(){ document.getElementById('photoLightbox').style.display = 'none'; }
+
+/* ---------------- bootstrap ---------------- */
+whenSupabaseReady(() => {
+  TABLES.forEach(subscribeTable);
+  subscribePhenoFieldDefs();
+  syncOfflineQueue();
+});
+const today = new Date().toISOString().slice(0,10);
+['carpoDate','transplantDate','phenoDate','cakileDate','charDate','citsciDate','soilDate','droneDate','aeDate'].forEach(id => {
+  const el = document.getElementById(id); if (el) el.value = today;
+});
+['carpoCheckDate','survivalCheckDate','nestDate'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; });
+renderStatCards();
+renderDownloadButtons();
+</script>
+</body>
+</html>

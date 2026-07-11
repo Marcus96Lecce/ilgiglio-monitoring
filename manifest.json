@@ -1,0 +1,24 @@
+{
+  "name": "ILGIGLIO — LIFE Salento Dunes",
+  "short_name": "ILGIGLIO",
+  "description": "Field monitoring for LIFE Salento Dunes: Pancratium maritimum, Charadrius alexandrinus, Carpobrotus edulis eradication",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0e8a71",
+  "background_color": "#1d1712",
+  "lang": "it",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registra un dato",
+      "short_name": "Registra",
+      "description": "Apri l'elenco dei moduli di registrazione",
+      "url": "./#submit"
+    }
+  ]
+}
