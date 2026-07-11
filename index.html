@@ -811,11 +811,8 @@
   // Same non-secret pattern as the sibling NRDS app: the anon/publishable key is meant to be public
   // (like a Firebase web config) — access is enforced entirely by the Postgres RLS policies in
   // Analysis/supabase_schema_ilgiglio_full.sql, not by hiding this value.
-  // TODO(Marco): replace with the real ILGIGLIO Supabase project URL + anon/publishable key once the
-  // project finishes provisioning (Project Settings -> API). The app runs fully offline-safe/mocked
-  // against a placeholder until then, but no real data will load or save.
-  const SUPABASE_URL = "REPLACE_WITH_ILGIGLIO_SUPABASE_URL";
-  const SUPABASE_ANON_KEY = "REPLACE_WITH_ILGIGLIO_ANON_KEY";
+  const SUPABASE_URL = "https://jxgzgnwsxtnchvjuvsma.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_IcytLjp6VmQxTCgLSEz3zg_1eVGURaL";
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   window.sb = supabase;
   window.dispatchEvent(new Event('supabase-ready'));
